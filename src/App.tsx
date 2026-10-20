@@ -76,21 +76,21 @@ const playChimeSound = (muted: boolean) => {
 export default function App() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
+  const [activeColorIndex, setActiveColorIndex] = useState<number>(2);
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
   const [bank, setBank] = useState<string>('BDV');
-  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
-  const [amount, setAmount] = useState<string>('200');
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('BS');
+  const [amount, setAmount] = useState<string>('200000');
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
   const [bestRate, setBestRate] = useState<string>('1005.36');
   const [cycles, setCycles] = useState<string>('3');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastSync, setLastSync] = useState<string>('En vivo');
+  const [lastSync, setLastSync] = useState<string>('14:14');
 
   const theme = colorPalette[activeColorIndex];
   const accentColor = theme.hex;
@@ -150,10 +150,6 @@ export default function App() {
     setIsLoading(false);
     playChimeSound(isMuted);
   }, [isMuted]);
-
-  useEffect(() => {
-    fetchLiveRates();
-  }, [bank, fetchLiveRates]);
 
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
@@ -389,36 +385,31 @@ export default function App() {
         </div>
 
         <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', marginBottom: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>1. Tasa Intervención:</span>
             <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>2. Subtotal Divisas ($USD):</span>
             <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: accentColor, fontWeight: 'bold' }}>3. Comisión Banco (0.5%):</span>
             <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '13px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '8px', backgroundColor: `${accentColor}20`, padding: '8px', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}15`, padding: '6px', borderRadius: '6px' }}>
             <span style={{ color: accentColor, fontWeight: '900' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
-            <strong style={{ color: accentColor, fontWeight: '900', fontSize: '14px' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          
-          {/* PASO 5: MÁS GRANDE Y RESALTANTE */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '13px', padding: '4px 0' }}>
-            <span style={{ color: ui.textPrimary, fontWeight: 'bold' }}>5. USD Comprados:</span>
-            <strong style={{ color: '#00FF9D', fontSize: '16px', fontWeight: '900', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>5. USD Comprados:</span>
+            <strong style={{ color: accentColor }}>${usdAdjudicados.toFixed(2)} USD</strong>
           </div>
-
-          {/* PASO 6: MÁS GRANDE Y RESALTANTE */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '13px', backgroundColor: ui.inputBg, padding: '8px', borderRadius: '8px', border: `1.5px solid ${accentColor}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1.5px solid ${ui.border}` }}>
             <span style={{ color: accentColor, fontWeight: '900' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
-            <strong style={{ color: '#00FF9D', fontSize: '16px', fontWeight: '900', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
           </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>7. USDT Finales Binance (-4.1%):</span>
             <strong style={{ color: accentColor }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
