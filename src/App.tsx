@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Galería de 5 Colores Principales de Tema
+// Galería de Colores de Tema
 const colorPalette = [
   { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡' },
   { id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢' },
@@ -197,12 +197,12 @@ export default function App() {
     }}>
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
 
-        {/* Encabezado Superior con Marca Yorman Inversiones */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        {/* Encabezado Superior con Yorman estadísticas */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '6px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '18px' }}>🚀</span>
-            <span style={{ fontWeight: '900', color: accentColor, fontSize: '16px', letterSpacing: '0.3px' }}>
-              Yorman Inversiones
+            <span style={{ fontSize: '18px' }}>📊</span>
+            <span style={{ fontWeight: '900', color: accentColor, fontSize: '15px', letterSpacing: '0.3px' }}>
+              Yorman estadísticas
             </span>
             <button
               onClick={fetchLiveRates}
@@ -221,8 +221,31 @@ export default function App() {
             </button>
           </div>
 
-          {/* Controles de Modo Claro/Oscuro y Zoom */}
+          {/* Controles Compactos: Selector de Color, Modo Claro/Oscuro y Zoom */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Un solo cuadro desplegable para el Color */}
+            <select
+              value={activeColorIndex}
+              onChange={(e) => setActiveColorIndex(Number(e.target.value))}
+              style={{
+                backgroundColor: ui.cardBg,
+                color: accentColor,
+                border: `1px solid ${ui.border}`,
+                borderRadius: '8px',
+                padding: '4px 6px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {colorPalette.map((c, idx) => (
+                <option key={c.id} value={idx} style={{ backgroundColor: ui.cardBg, color: ui.textPrimary }}>
+                  {c.icon} {c.name}
+                </option>
+              ))}
+            </select>
+
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               style={{
@@ -236,45 +259,14 @@ export default function App() {
                 cursor: 'pointer'
               }}
             >
-              {isDarkMode ? '☀️ Claro' : '🌙 Oscuro'}
+              {isDarkMode ? '☀️' : '🌙'}
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '2px' }}>
-              <button onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A−</button>
-              <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 2px' }}>{zoomLevel}%</span>
-              <button onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A+</button>
+              <button onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
+              <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 1px' }}>{zoomLevel}%</span>
+              <button onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
             </div>
-          </div>
-        </div>
-
-        {/* PESTAÑA SECTOR DE 5 COLORES */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '12px', padding: '8px 12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '10px', fontWeight: '800', color: ui.textMuted, textTransform: 'uppercase' }}>
-            COLOR DESTACADO:
-          </span>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {colorPalette.map((c, idx) => (
-              <button
-                key={c.id}
-                onClick={() => setActiveColorIndex(idx)}
-                style={{
-                  backgroundColor: activeColorIndex === idx ? `${c.hex}30` : ui.inputBg,
-                  border: activeColorIndex === idx ? `2px solid ${c.hex}` : `1px solid ${ui.border}`,
-                  borderRadius: '20px',
-                  padding: '4px 8px',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: ui.textPrimary,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px'
-                }}
-              >
-                <span>{c.icon}</span>
-                <span style={{ color: activeColorIndex === idx ? c.hex : ui.textMuted }}>{c.name}</span>
-              </button>
-            ))}
           </div>
         </div>
 
