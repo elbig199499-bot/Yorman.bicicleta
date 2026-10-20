@@ -8,47 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { label: string; logoUrl: string; comms: { label: string; val: string }[] }> = {
-  BDV: { 
-    label: 'BDV', 
-    logoUrl: 'https://www.banvenez.com/wp-content/uploads/2021/07/cropped-favicon-bdv-1-32x32.png', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] 
-  },
-  BBVA: { 
-    label: 'BBVA', 
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/BBVA_2019.svg', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] 
-  },
-  Mercantil: { 
-    label: 'Mercantil', 
-    logoUrl: 'https://www.mercantilbanco.com/mercantil/_ui/desktop/common/images/favicon.ico', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] 
-  },
-  Banesco: { 
-    label: 'Banesco', 
-    logoUrl: 'https://www.banesco.com/wps/wcm/connect/banesco/5ec3c6fa-505f-4d65-8b89-13b0c5dfbfec/favicon.ico?MOD=AJPERES', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] 
-  },
-  BNC: { 
-    label: 'BNC', 
-    logoUrl: 'https://www.bncenlinea.com/wps/wcm/connect/bnc/7d7a31a9-9685-48cd-bfd6-444cb7b4945e/favicon.ico?MOD=AJPERES', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] 
-  },
-  Bancamiga: { 
-    label: 'Bancamiga', 
-    logoUrl: 'https://bancamiga.com/wp-content/uploads/2021/04/cropped-favicon-32x32.png', 
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] 
-  },
-  Tesoro: { 
-    label: 'Tesoro', 
-    logoUrl: 'https://www.bt.gob.ve/wp-content/uploads/2023/03/cropped-favicon-bt-32x32.png', 
-    comms: [{ label: 'Compra', val: '0%' }] 
-  },
-  BDT: { 
-    label: 'BDT', 
-    logoUrl: 'https://www.bdt.com.ve/wp-content/uploads/2023/05/cropped-favicon-bdt-32x32.png', 
-    comms: [{ label: 'Compra', val: '0%' }] 
-  }
+const bankData: Record<string, { label: string; logoBg: string; textColor: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', logoBg: '#002855', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', logoBg: '#004481', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', logoBg: '#00539F', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', logoBg: '#00A859', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', logoBg: '#002D62', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', logoBg: '#00A3E0', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', logoBg: '#003366', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', logoBg: '#E31B23', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -331,8 +299,8 @@ export default function App() {
               const isSelected = bank === bKey;
               return (
                 <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '76px', padding: '8px 4px', borderRadius: '12px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid #E2E8F0', padding: '4px', overflow: 'hidden' }}>
-                    <img src={bInfo.logoUrl} alt={bInfo.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: bInfo.logoBg, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.2)', padding: '2px' }}>
+                    <span style={{ fontSize: bKey.length > 3 ? '9px' : '11px', fontWeight: '900', color: bInfo.textColor, textAlign: 'center', lineHeight: '1', letterSpacing: '-0.5px' }}>{bKey}</span>
                   </div>
                   <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bInfo.label}</span>
                 </button>
@@ -475,7 +443,7 @@ export default function App() {
           <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
             <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>{labelUnidad}</span>
             <div style={{ fontSize: '24px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{formatTotal}</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>{subtextGanancia}</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary}>{subtextGanancia}</div>
           </div>
         </div>
       </div>
