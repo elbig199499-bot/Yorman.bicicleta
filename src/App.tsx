@@ -52,12 +52,12 @@ export default function App() {
 
   // Estado de Selección
   const [bank, setBank] = useState<string>('BDV');
-  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USD');
   
-  // Valores en formato string para borrado e ingreso fluido en móviles
-  const [amount, setAmount] = useState<string>('500');
+  // Inputs como texto para selección y borrado fluido
+  const [amount, setAmount] = useState<string>('200');
   
-  // Tasa de Intervención Cambiaria BCV protegida (886.29 Bs)
+  // Tasa de Intervención Cambiaria BCV
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
   
   // Tasa P2P
@@ -73,7 +73,7 @@ export default function App() {
     localStorage.setItem('bici_zoom', String(newZoom));
   };
 
-  // Sincronización automática exclusiva para Binance P2P
+  // Sincronización automática de Binance P2P
   const fetchLiveRates = useCallback(async () => {
     setIsLoading(true);
     let p2pSuccess = false;
@@ -90,7 +90,7 @@ export default function App() {
         }
       }
     } catch {
-      console.warn('Fallo servidor principal P2P');
+      console.warn('Fallback a servidor P2P secundario...');
     }
 
     if (!p2pSuccess) {
@@ -119,39 +119,47 @@ export default function App() {
     fetchLiveRates();
   }, [fetchLiveRates, bank]);
 
-  // Conversiones y Cálculos
+  // Conversiones y Cálculos Exactos
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
-  const cEnvio = 2.5;  // Envío / Transferencia
-  const cBinance = 4.1; // Binance P2P
+  const cEnvio = 2.5;          // Envío / Transferencia divisa
+  const cBinance = 4.1;        // Comisión Binance P2P
+  const cAdjudicacionPct = 0.5; // Comisión Adjudicación Banco (0.5%)
 
   const tasaRealCompra = baseIntervencion;
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
   let usdComprados = 0;
-  let bsIntervencion = 0;
+  let bsBaseIntervencion = 0;
   let usdtP2p = 0;
 
   if (currencyMode === 'USD') {
     usdComprados = valAmount;
-    bsIntervencion = usdComprados * tasaRealCompra;
+    bsBaseIntervencion = usdComprados * tasaRealCompra;
     usdtP2p = usdComprados * factorRetornoNeto;
   } else if (currencyMode === 'USDT') {
     usdtP2p = valAmount;
     usdComprados = usdtP2p / (factorRetornoNeto || 1);
-    bsIntervencion = usdComprados * tasaRealCompra;
+    bsBaseIntervencion = usdComprados * tasaRealCompra;
   } else {
-    bsIntervencion = valAmount;
-    usdComprados = bsIntervencion / (tasaRealCompra || 1);
+    // Si la entrada es en Bs disponibles en cuenta
+    const bsSinComision = valAmount / (1 + cAdjudicacionPct / 100);
+    bsBaseIntervencion = bsSinComision;
+    usdComprados = bsBaseIntervencion / (tasaRealCompra || 1);
     usdtP2p = usdComprados * factorRetornoNeto;
   }
 
+  // Comisión en Bolívares extra que exige el banco para procesar la orden
+  const comisionBancoBs = bsBaseIntervencion * (cAdjudicacionPct / 100);
+  const totalBsNecesariosEnBanco = bsBaseIntervencion + comisionBancoBs;
+
+  // Venta en Binance P2P y Margen Neto
   const bsVentaP2P = usdtP2p * baseP2p;
-  const gananciaBs = bsVentaP2P - bsIntervencion;
+  const gananciaBs = bsVentaP2P - totalBsNecesariosEnBanco;
   const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
-  const gananciaPorcentaje = bsIntervencion > 0 ? (gananciaBs / bsIntervencion) * 100 : 0;
+  const gananciaPorcentaje = totalBsNecesariosEnBanco > 0 ? (gananciaBs / totalBsNecesariosEnBanco) * 100 : 0;
 
   return (
     <div style={{
@@ -182,7 +190,7 @@ export default function App() {
                 cursor: 'pointer'
               }}
             >
-              {isLoading ? '⏳ Actualizando...' : `🔄 P2P Auto: ${lastSync}`}
+              {isLoading ? '⏳ Actualizando...' : `🔄 Auto: ${lastSync}`}
             </button>
           </div>
 
@@ -261,22 +269,6 @@ export default function App() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             <button
-              onClick={() => setCurrencyMode('USDT')}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : '1px solid #30363D',
-                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : '#0D1117',
-                color: currencyMode === 'USDT' ? '#0ECB81' : '#8B949E',
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT vendido</div>
-            </button>
-
-            <button
               onClick={() => setCurrencyMode('USD')}
               style={{
                 padding: '8px 4px',
@@ -289,7 +281,23 @@ export default function App() {
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>USD comprado</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>USD a comprar</div>
+            </button>
+
+            <button
+              onClick={() => setCurrencyMode('USDT')}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : '1px solid #30363D',
+                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : '#0D1117',
+                color: currencyMode === 'USDT' ? '#0ECB81' : '#8B949E',
+                textAlign: 'left',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT objetivo</div>
             </button>
 
             <button
@@ -305,7 +313,7 @@ export default function App() {
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>🇻🇪 Bs</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>Bs disponibles</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>Bs en cuenta</div>
             </button>
           </div>
         </div>
@@ -352,10 +360,11 @@ export default function App() {
               />
             </div>
 
+            {/* Resumen Mínimo Necesario para no rebotar en la web del banco */}
             <div style={{ backgroundColor: '#1C190B', border: '1px solid #F0B90B40', borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '8px', color: '#F0B90B', fontWeight: 'bold' }}>BS (INTERVENCIÓN)</div>
+              <div style={{ fontSize: '8px', color: '#F0B90B', fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
               <div style={{ fontSize: '12px', fontWeight: '800', color: '#F0B90B' }}>
-                {bsIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+                {totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
               </div>
             </div>
 
@@ -431,7 +440,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 5. TARJETA DESGLOSE Y GANANCIA ESTIMADA */}
+        {/* 5. TARJETA DESGLOSE Y PREVENCIÓN DE SALDO INSUFICIENTE */}
         <div style={{ backgroundColor: '#161B22', border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: '#8B949E' }}>1. Tasa Intervención:</span>
@@ -439,17 +448,27 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>2. Bs Totales Requeridos:</span>
-            <strong style={{ color: '#E6EDF3' }}>{bsIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <span style={{ color: '#8B949E' }}>2. Subtotal Divisas ($USD):</span>
+            <strong style={{ color: '#E6EDF3' }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>3. USD Adjudicados:</span>
+            <span style={{ color: '#F0B90B' }}>3. Comisión Banco (0.5%):</span>
+            <strong style={{ color: '#F0B90B' }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: '1px dashed #30363D', paddingTop: '6px', backgroundColor: '#1C190B', padding: '6px', borderRadius: '6px' }}>
+            <span style={{ color: '#F0B90B', fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
+            <strong style={{ color: '#F0B90B', fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: '#8B949E' }}>5. USD Adjudicados:</span>
             <strong style={{ color: '#58A6FF' }}>${usdComprados.toFixed(2)} USD</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>4. USDT Finales Binance (-4.1%):</span>
+            <span style={{ color: '#8B949E' }}>6. USDT Finales Binance (-4.1%):</span>
             <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
 
