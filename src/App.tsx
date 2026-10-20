@@ -73,33 +73,78 @@ const bankData: Record<string, { color: string; label: string; comms: { label: s
   }
 };
 
-// Generador de Sonido de Confirmación (Web Audio API)
-const playChime = () => {
+// Motor Web Audio API nativo
+let globalAudioCtx: AudioContext | null = null;
+
+const getAudioContext = () => {
+  if (!globalAudioCtx) {
+    const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    if (AudioCtxClass) {
+      globalAudioCtx = new AudioCtxClass();
+    }
+  }
+  if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+    globalAudioCtx.resume();
+  }
+  return globalAudioCtx;
+};
+
+// Sonido de Tap/Click suave para botones y selecciones
+const playTapSound = (muted: boolean) => {
+  if (muted) return;
   try {
-    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // Tono D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // Tono A5
+    osc.frequency.setValueAtTime(750, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(350, ctx.currentTime + 0.04);
 
-    gain.gain.setValueAtTime(0.06, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.22);
+    osc.stop(ctx.currentTime + 0.04);
   } catch (e) {
-    console.warn('Audio no disponible en este navegador:', e);
+    console.warn('Audio no disponible:', e);
+  }
+};
+
+// Sonido Chime de Confirmación para Actualizaciones de Cálculo
+const playChimeSound = (muted: boolean) => {
+  if (muted) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.18);
+  } catch (e) {
+    console.warn('Audio no disponible:', e);
   }
 };
 
 export default function App() {
+  // Estado de Mute / Silenciador
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+
   // Estado de Tema y Zoom
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
@@ -138,6 +183,7 @@ export default function App() {
   };
 
   const changeZoom = (delta: number) => {
+    playTapSound(isMuted);
     const newZoom = Math.min(Math.max(zoomLevel + delta, 80), 130);
     setZoomLevel(newZoom);
     localStorage.setItem('bici_zoom', String(newZoom));
@@ -183,12 +229,12 @@ export default function App() {
     const now = new Date();
     setLastSync(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     setIsLoading(false);
-    playChime();
-  }, []);
+    playChimeSound(isMuted);
+  }, [isMuted]);
 
   useEffect(() => {
     fetchLiveRates();
-  }, [fetchLiveRates, bank]);
+  }, [bank]);
 
   // Conversiones y Cálculos Exactos
   const valAmount = parseFloat(amount) || 0;
@@ -292,7 +338,7 @@ export default function App() {
       padding: '12px 8px 30px 8px',
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
-      {/* Reglas de Animación CSS */}
+      {/* Estilos e Inyección de Animaciones CSS */}
       <style>{`
         @keyframes pulseGlow {
           0% { transform: scale(1); box-shadow: 0 0 0px rgba(14, 203, 129, 0); }
@@ -303,11 +349,12 @@ export default function App() {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        .animate-update {
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        .btn-tap {
+          transition: transform 0.1s ease, filter 0.1s ease;
         }
-        .animate-update:hover {
-          transform: translateY(-2px);
+        .btn-tap:active {
+          transform: scale(0.94) !important;
+          filter: brightness(1.2);
         }
       `}</style>
 
@@ -321,7 +368,11 @@ export default function App() {
               Yorman estadísticas
             </span>
             <button
-              onClick={fetchLiveRates}
+              className="btn-tap"
+              onClick={() => {
+                playTapSound(isMuted);
+                fetchLiveRates();
+              }}
               disabled={isLoading}
               style={{
                 backgroundColor: ui.cardBg,
@@ -337,17 +388,39 @@ export default function App() {
               }}
             >
               <span style={{ display: 'inline-block', animation: isLoading ? 'spinIcon 1s linear infinite' : 'none' }}>🔄</span>
-              <span>{isLoading ? 'Actualizando...' : lastSync}</span>
+              <span>{isLoading ? '...' : lastSync}</span>
             </button>
           </div>
 
-          {/* Selector de Color, Modo Claro/Oscuro y Zoom */}
+          {/* Selector de Color, Modo Claro/Oscuro, Silenciador y Zoom */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* BOTÓN DE CORNETICA / SILENCIADOR */}
+            <button
+              className="btn-tap"
+              onClick={() => {
+                const newMute = !isMuted;
+                setIsMuted(newMute);
+                if (!newMute) playTapSound(false);
+              }}
+              title={isMuted ? 'Activar sonido' : 'Silenciar sonido'}
+              style={{
+                backgroundColor: isMuted ? `${accentColor}20` : ui.cardBg,
+                border: `1px solid ${isMuted ? accentColor : ui.border}`,
+                color: ui.textPrimary,
+                padding: '4px 7px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              {isMuted ? '🔇' : '🔊'}
+            </button>
+
             <select
               value={activeColorIndex}
               onChange={(e) => {
                 setActiveColorIndex(Number(e.target.value));
-                playChime();
+                playTapSound(isMuted);
               }}
               style={{
                 backgroundColor: ui.cardBg,
@@ -369,9 +442,10 @@ export default function App() {
             </select>
 
             <button
+              className="btn-tap"
               onClick={() => {
                 setIsDarkMode(!isDarkMode);
-                playChime();
+                playTapSound(isMuted);
               }}
               style={{
                 backgroundColor: ui.cardBg,
@@ -388,15 +462,15 @@ export default function App() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '2px' }}>
-              <button onClick={() => { changeZoom(-5); playChime(); }} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
+              <button className="btn-tap" onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
               <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 1px' }}>{zoomLevel}%</span>
-              <button onClick={() => { changeZoom(5); playChime(); }} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
+              <button className="btn-tap" onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
             </div>
           </div>
         </div>
 
         {/* 1. SECCIÓN DE BANCOS */}
-        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>BANCO</span>
             <span style={{ fontSize: '10px', color: '#0ECB81', backgroundColor: '#0ECB811A', padding: '2px 6px', borderRadius: '10px', fontWeight: '800' }}>ACTIVO</span>
@@ -406,9 +480,10 @@ export default function App() {
             {Object.keys(bankData).map((bKey) => (
               <button
                 key={bKey}
+                className="btn-tap"
                 onClick={() => {
                   setBank(bKey);
-                  playChime();
+                  playTapSound(isMuted);
                 }}
                 style={{
                   minWidth: '60px',
@@ -423,8 +498,7 @@ export default function App() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '4px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  cursor: 'pointer'
                 }}
               >
                 <div style={{
@@ -459,14 +533,18 @@ export default function App() {
         </div>
 
         {/* 2. MONEDA DE ENTRADA */}
-        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800', display: 'block', marginBottom: '8px' }}>
             MONEDA DE ENTRADA
           </span>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             <button
-              onClick={() => { setCurrencyMode('USDT'); playChime(); }}
+              className="btn-tap"
+              onClick={() => {
+                setCurrencyMode('USDT');
+                playTapSound(isMuted);
+              }}
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
@@ -474,8 +552,7 @@ export default function App() {
                 backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
                 color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
                 textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: 'pointer'
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
@@ -483,7 +560,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => { setCurrencyMode('USD'); playChime(); }}
+              className="btn-tap"
+              onClick={() => {
+                setCurrencyMode('USD');
+                playTapSound(isMuted);
+              }}
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
@@ -491,8 +572,7 @@ export default function App() {
                 backgroundColor: currencyMode === 'USD' ? '#1D63ED1A' : ui.inputBg,
                 color: currencyMode === 'USD' ? '#58A6FF' : ui.textMuted,
                 textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: 'pointer'
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
@@ -500,7 +580,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => { setCurrencyMode('BS'); playChime(); }}
+              className="btn-tap"
+              onClick={() => {
+                setCurrencyMode('BS');
+                playTapSound(isMuted);
+              }}
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
@@ -508,8 +592,7 @@ export default function App() {
                 backgroundColor: currencyMode === 'BS' ? `${accentColor}1A` : ui.inputBg,
                 color: currencyMode === 'BS' ? accentColor : ui.textMuted,
                 textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: 'pointer'
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>🇻🇪 Bs</div>
@@ -519,7 +602,7 @@ export default function App() {
         </div>
 
         {/* 3. DATOS DE OPERACIÓN */}
-        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
             
@@ -529,7 +612,10 @@ export default function App() {
                 type="number"
                 step="any"
                 value={intervencionRate}
-                onFocus={(e) => e.target.select()}
+                onFocus={(e) => {
+                  e.target.select();
+                  playTapSound(isMuted);
+                }}
                 onChange={(e) => setIntervencionRate(e.target.value)}
                 style={{
                   width: '85px',
@@ -541,8 +627,7 @@ export default function App() {
                   fontWeight: 'bold',
                   textAlign: 'center',
                   padding: '3px',
-                  outline: 'none',
-                  transition: 'all 0.2s ease'
+                  outline: 'none'
                 }}
               />
               <span style={{ fontSize: '10px', color: ui.textMuted }}>Bs</span>
@@ -556,22 +641,25 @@ export default function App() {
                 type="number"
                 step="any"
                 value={amount}
-                onFocus={(e) => e.target.select()}
+                onFocus={(e) => {
+                  e.target.select();
+                  playTapSound(isMuted);
+                }}
                 onChange={(e) => setAmount(e.target.value)}
                 style={{ width: '100%', background: 'none', border: 'none', color: ui.textPrimary, fontSize: '15px', fontWeight: '800', outline: 'none' }}
               />
             </div>
 
-            <div style={{ backgroundColor: `${accentColor}10`, border: `1px solid ${accentColor}40`, borderRadius: '8px', padding: '6px 8px', transition: 'all 0.3s ease' }}>
+            <div style={{ backgroundColor: `${accentColor}10`, border: `1px solid ${accentColor}40`, borderRadius: '8px', padding: '6px 8px' }}>
               <div style={{ fontSize: '8px', color: accentColor, fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
-              <div style={{ fontSize: '12px', fontWeight: '800', color: accentColor, transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: accentColor }}>
                 {totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
               </div>
             </div>
 
-            <div style={{ backgroundColor: '#0A1E17', border: '1px solid #0ECB8140', borderRadius: '8px', padding: '6px 8px', transition: 'all 0.3s ease' }}>
+            <div style={{ backgroundColor: '#0A1E17', border: '1px solid #0ECB8140', borderRadius: '8px', padding: '6px 8px' }}>
               <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: 'bold' }}>USDT (P2P)</div>
-              <div style={{ fontSize: '12px', fontWeight: '800', color: '#0ECB81', transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: '#0ECB81' }}>
                 {usdtP2p.toFixed(2)}
               </div>
             </div>
@@ -579,4 +667,200 @@ export default function App() {
         </div>
 
         {/* 4. TASA P2P */}
-        <div className="animate-update" style={{ backgroundColor: ui
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>TASA P2P</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{bank}</span>
+              <input
+                type="number"
+                step="any"
+                value={p2pRate}
+                onFocus={(e) => {
+                  e.target.select();
+                  playTapSound(isMuted);
+                }}
+                onChange={(e) => setP2pRate(e.target.value)}
+                style={{
+                  width: '80px',
+                  backgroundColor: ui.inputBg,
+                  border: `1px solid ${ui.border}`,
+                  borderRadius: '6px',
+                  color: ui.textPrimary,
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  padding: '3px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', marginBottom: '6px', borderBottom: `1px solid ${ui.border}` }}>
+              <div>
+                <div style={{ fontSize: '8px', color: accentColor, fontWeight: '800' }}>MEJOR TASA PARA TU MONTO</div>
+                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer (Verificado)</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button
+                  className="btn-tap"
+                  onClick={() => {
+                    setP2pRate(bestRate);
+                    playTapSound(isMuted);
+                  }}
+                  style={{ backgroundColor: accentColor, color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: '800' }}>MERCADO GENERAL</div>
+                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button
+                  className="btn-tap"
+                  onClick={() => {
+                    setP2pRate(p2pRate);
+                    playTapSound(isMuted);
+                  }}
+                  style={{ backgroundColor: '#0ECB8120', color: '#0ECB81', border: '1px solid #0ECB81', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. TARJETA DESGLOSE DE 1 CICLO */}
+        <div style={{
+          backgroundColor: ui.cardBg,
+          border: '1.5px solid #0ECB81',
+          borderRadius: '14px',
+          padding: '14px',
+          marginBottom: '14px',
+          boxShadow: isDarkMode ? '0 4px 20px rgba(14, 203, 129, 0.12)' : '0 4px 15px rgba(14, 203, 129, 0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>1. Tasa Intervención:</span>
+            <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>2. Subtotal Divisas ($USD):</span>
+            <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: accentColor }}>3. Comisión Banco (0.5%):</span>
+            <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}10`, padding: '6px', borderRadius: '6px' }}>
+            <span style={{ color: accentColor, fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>5. USD Comprados:</span>
+            <strong style={{ color: '#58A6FF' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1px solid ${ui.border}` }}>
+            <span style={{ color: '#58A6FF', fontWeight: 'bold' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
+            <strong style={{ color: '#58A6FF', fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>7. USDT Finales Binance (-4.1%):</span>
+            <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
+          </div>
+
+          {/* GANANCIA DE 1 CICLO CON PULSO Y EFECTO DE RESALTADO */}
+          <div style={{
+            backgroundColor: '#0ECB811A',
+            border: '1px solid #0ECB81',
+            borderRadius: '10px',
+            padding: '12px',
+            textAlign: 'center',
+            animation: 'pulseGlow 3s infinite ease-in-out'
+          }}>
+            <span style={{ fontSize: '10px', color: '#0ECB81', fontWeight: '800', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
+            <div style={{ fontSize: '22px', fontWeight: '900', color: '#0ECB81', margin: '4px 0' }}>
+              {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
+              ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
+            </div>
+          </div>
+        </div>
+
+        {/* 6. PROYECCIÓN DE REINVERSIÓN COMPUESTA */}
+        <div style={{
+          backgroundColor: ui.cardBg,
+          border: `1.5px solid ${accentColor}`,
+          borderRadius: '14px',
+          padding: '14px',
+          boxShadow: isDarkMode ? `0 4px 20px ${accentColor}25` : `0 4px 15px ${accentColor}30`
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>
+                🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA
+              </span>
+              <span style={{ fontSize: '9px', color: ui.textMuted }}>
+                Reinversión total del capital ganado en cada vuelta
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '4px 8px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', color: ui.textMuted }}>VUELTAS:</span>
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={cycles}
+                onFocus={(e) => {
+                  e.target.select();
+                  playTapSound(isMuted);
+                }}
+                onChange={(e) => setCycles(e.target.value)}
+                style={{
+                  width: '40px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: accentColor,
+                  fontSize: '14px',
+                  fontWeight: '900',
+                  textAlign: 'center',
+                  outline: 'none'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: `${accentColor}15`, border: `1px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: accentColor, fontWeight: '800', letterSpacing: '0.5px' }}>
+              {labelUnidad}
+            </span>
+            <div style={{ fontSize: '24px', fontWeight: '900', color accentColor, margin: '4px 0' }}>
+              {formatTotal}
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
+              {subtextGanancia}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
