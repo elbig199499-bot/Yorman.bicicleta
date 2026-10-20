@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// Galería de 5 Colores Principales de Tema
+const colorPalette = [
+  { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡' },
+  { id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢' },
+  { id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', icon: '🔵' },
+  { id: 'morado', name: 'Morado', hex: '#8B5CF6', icon: '🟣' },
+  { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴' },
+];
+
 // Estructura de Bancos con Insignias Vectoriales
 const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
   BDV: {
@@ -45,12 +54,15 @@ const bankData: Record<string, { color: string; label: string; comms: { label: s
 };
 
 export default function App() {
+  // Estado de Tema y Zoom
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
-  // Estado de Selección
+  // Estado de Selección de Banco y Moneda
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USD');
   
@@ -66,6 +78,18 @@ export default function App() {
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastSync, setLastSync] = useState<string>('En vivo');
+
+  const accentColor = colorPalette[activeColorIndex].hex;
+
+  // Paleta dinámica Claro / Oscuro
+  const ui = {
+    bg: isDarkMode ? '#0E1117' : '#F1F5F9',
+    cardBg: isDarkMode ? '#161B22' : '#FFFFFF',
+    border: isDarkMode ? '#30363D' : '#E2E8F0',
+    textPrimary: isDarkMode ? '#E6EDF3' : '#0F172A',
+    textMuted: isDarkMode ? '#8B949E' : '#64748B',
+    inputBg: isDarkMode ? '#0D1117' : '#F8FAFC',
+  };
 
   const changeZoom = (delta: number) => {
     const newZoom = Math.min(Math.max(zoomLevel + delta, 80), 130);
@@ -124,34 +148,34 @@ export default function App() {
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
-  const cEnvio = 2.5;          // Envío / Transferencia divisa
-  const cBinance = 4.1;        // Comisión Binance P2P
+  const cEnvioPct = 2.5;        // Comisión Envío / Uso Tarjeta Divisas (2.5%)
+  const cBinancePct = 4.1;      // Comisión Binance P2P (4.1%)
   const cAdjudicacionPct = 0.5; // Comisión Adjudicación Banco (0.5%)
 
   const tasaRealCompra = baseIntervencion;
-  const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
-  let usdComprados = 0;
+  let usdAdjudicados = 0;
   let bsBaseIntervencion = 0;
-  let usdtP2p = 0;
 
   if (currencyMode === 'USD') {
-    usdComprados = valAmount;
-    bsBaseIntervencion = usdComprados * tasaRealCompra;
-    usdtP2p = usdComprados * factorRetornoNeto;
+    usdAdjudicados = valAmount;
+    bsBaseIntervencion = usdAdjudicados * tasaRealCompra;
   } else if (currencyMode === 'USDT') {
-    usdtP2p = valAmount;
-    usdComprados = usdtP2p / (factorRetornoNeto || 1);
-    bsBaseIntervencion = usdComprados * tasaRealCompra;
+    const factorRetornoNeto = (1 - cEnvioPct / 100) * (1 - cBinancePct / 100);
+    usdAdjudicados = valAmount / (factorRetornoNeto || 1);
+    bsBaseIntervencion = usdAdjudicados * tasaRealCompra;
   } else {
-    // Si la entrada es en Bs disponibles en cuenta
     const bsSinComision = valAmount / (1 + cAdjudicacionPct / 100);
     bsBaseIntervencion = bsSinComision;
-    usdComprados = bsBaseIntervencion / (tasaRealCompra || 1);
-    usdtP2p = usdComprados * factorRetornoNeto;
+    usdAdjudicados = bsBaseIntervencion / (tasaRealCompra || 1);
   }
 
-  // Comisión en Bolívares extra que exige el banco para procesar la orden
+  // Desglose de Dólares y Comisiones
+  const comisionEnvioUsd = usdAdjudicados * (cEnvioPct / 100);
+  const usdLibresEnviar = usdAdjudicados - comisionEnvioUsd; // USD netos tras el 2.5% del banco
+  const usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);  // USDT finales en Binance
+
+  // Comisiones en Bolívares
   const comisionBancoBs = bsBaseIntervencion * (cAdjudicacionPct / 100);
   const totalBsNecesariosEnBanco = bsBaseIntervencion + comisionBancoBs;
 
@@ -163,49 +187,101 @@ export default function App() {
 
   return (
     <div style={{
-      backgroundColor: '#0E1117',
-      color: '#E6EDF3',
+      backgroundColor: ui.bg,
+      color: ui.textPrimary,
       minHeight: '100vh',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       fontSize: `${zoomLevel}%`,
-      padding: '12px 8px 30px 8px'
+      padding: '12px 8px 30px 8px',
+      transition: 'background-color 0.2s, color 0.2s'
     }}>
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
 
-        {/* Encabezado Superior */}
+        {/* Encabezado Superior con Marca Yorman Inversiones */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '18px' }}>🚴</span>
-            <span style={{ fontWeight: '800', color: '#F0B90B', fontSize: '15px' }}>Bici cal v2.1</span>
+            <span style={{ fontSize: '18px' }}>🚀</span>
+            <span style={{ fontWeight: '900', color: accentColor, fontSize: '16px', letterSpacing: '0.3px' }}>
+              Yorman Inversiones
+            </span>
             <button
               onClick={fetchLiveRates}
               disabled={isLoading}
               style={{
-                backgroundColor: '#161B22',
-                border: '1px solid #30363D',
-                color: isLoading ? '#8B949E' : '#0ECB81',
+                backgroundColor: ui.cardBg,
+                border: `1px solid ${ui.border}`,
+                color: isLoading ? ui.textMuted : '#0ECB81',
                 padding: '4px 8px',
                 borderRadius: '6px',
                 fontSize: '10px',
                 cursor: 'pointer'
               }}
             >
-              {isLoading ? '⏳ Actualizando...' : `🔄 Auto: ${lastSync}`}
+              {isLoading ? '⏳' : `🔄 ${lastSync}`}
             </button>
           </div>
 
-          {/* Selector de Zoom */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '8px', padding: '2px' }}>
-            <button onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: '#E6EDF3', padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A−</button>
-            <span style={{ fontSize: '10px', color: '#8B949E', padding: '0 2px' }}>{zoomLevel}%</span>
-            <button onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: '#E6EDF3', padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A+</button>
+          {/* Controles de Modo Claro/Oscuro y Zoom */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              style={{
+                backgroundColor: ui.cardBg,
+                border: `1px solid ${ui.border}`,
+                color: ui.textPrimary,
+                padding: '4px 8px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              {isDarkMode ? '☀️ Claro' : '🌙 Oscuro'}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '2px' }}>
+              <button onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A−</button>
+              <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 2px' }}>{zoomLevel}%</span>
+              <button onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 6px', cursor: 'pointer', fontWeight: 'bold' }}>A+</button>
+            </div>
+          </div>
+        </div>
+
+        {/* PESTAÑA SECTOR DE 5 COLORES */}
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '12px', padding: '8px 12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '10px', fontWeight: '800', color: ui.textMuted, textTransform: 'uppercase' }}>
+            COLOR DESTACADO:
+          </span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {colorPalette.map((c, idx) => (
+              <button
+                key={c.id}
+                onClick={() => setActiveColorIndex(idx)}
+                style={{
+                  backgroundColor: activeColorIndex === idx ? `${c.hex}30` : ui.inputBg,
+                  border: activeColorIndex === idx ? `2px solid ${c.hex}` : `1px solid ${ui.border}`,
+                  borderRadius: '20px',
+                  padding: '4px 8px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  color: ui.textPrimary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+              >
+                <span>{c.icon}</span>
+                <span style={{ color: activeColorIndex === idx ? c.hex : ui.textMuted }}>{c.name}</span>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* 1. SECCIÓN DE BANCOS */}
-        <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>BANCO</span>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>BANCO</span>
             <span style={{ fontSize: '10px', color: '#0ECB81', backgroundColor: '#0ECB811A', padding: '2px 6px', borderRadius: '10px', fontWeight: '800' }}>ACTIVO</span>
           </div>
 
@@ -218,9 +294,9 @@ export default function App() {
                   minWidth: '60px',
                   padding: '8px 4px',
                   borderRadius: '10px',
-                  border: bank === bKey ? '1.5px solid #F0B90B' : '1px solid #30363D',
-                  backgroundColor: bank === bKey ? '#21262D' : '#0D1117',
-                  color: '#E6EDF3',
+                  border: bank === bKey ? `1.5px solid ${accentColor}` : `1px solid ${ui.border}`,
+                  backgroundColor: bank === bKey ? `${accentColor}20` : ui.inputBg,
+                  color: ui.textPrimary,
                   fontSize: '11px',
                   fontWeight: 'bold',
                   display: 'flex',
@@ -242,14 +318,14 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <span style={{ backgroundColor: '#21262D', color: '#E6EDF3', padding: '3px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' }}>
+            <span style={{ backgroundColor: ui.inputBg, color: ui.textPrimary, padding: '3px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' }}>
               {bank}
             </span>
             {bankData[bank]?.comms.map((c, idx) => (
               <span key={idx} style={{
-                backgroundColor: idx === 0 ? '#F0B90B1A' : '#0D1117',
-                border: idx === 0 ? '1px solid #F0B90B' : '1px solid #30363D',
-                color: idx === 0 ? '#F0B90B' : '#8B949E',
+                backgroundColor: idx === 0 ? `${accentColor}1A` : ui.inputBg,
+                border: idx === 0 ? `1px solid ${accentColor}` : `1px solid ${ui.border}`,
+                color: idx === 0 ? accentColor : ui.textMuted,
                 padding: '3px 6px',
                 borderRadius: '6px',
                 fontSize: '10px',
@@ -262,8 +338,8 @@ export default function App() {
         </div>
 
         {/* 2. MONEDA DE ENTRADA */}
-        <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
-          <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800', display: 'block', marginBottom: '8px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+          <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800', display: 'block', marginBottom: '8px' }}>
             MONEDA DE ENTRADA
           </span>
           
@@ -273,9 +349,9 @@ export default function App() {
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
-                border: currencyMode === 'USD' ? '1.5px solid #58A6FF' : '1px solid #30363D',
-                backgroundColor: currencyMode === 'USD' ? '#1D63ED1A' : '#0D1117',
-                color: currencyMode === 'USD' ? '#58A6FF' : '#8B949E',
+                border: currencyMode === 'USD' ? '1.5px solid #58A6FF' : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'USD' ? '#1D63ED1A' : ui.inputBg,
+                color: currencyMode === 'USD' ? '#58A6FF' : ui.textMuted,
                 textAlign: 'left',
                 cursor: 'pointer'
               }}
@@ -289,9 +365,9 @@ export default function App() {
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
-                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : '1px solid #30363D',
-                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : '#0D1117',
-                color: currencyMode === 'USDT' ? '#0ECB81' : '#8B949E',
+                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
+                color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
                 textAlign: 'left',
                 cursor: 'pointer'
               }}
@@ -305,9 +381,9 @@ export default function App() {
               style={{
                 padding: '8px 4px',
                 borderRadius: '8px',
-                border: currencyMode === 'BS' ? '1.5px solid #F0B90B' : '1px solid #30363D',
-                backgroundColor: currencyMode === 'BS' ? '#F0B90B1A' : '#0D1117',
-                color: currencyMode === 'BS' ? '#F0B90B' : '#8B949E',
+                border: currencyMode === 'BS' ? `1.5px solid ${accentColor}` : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'BS' ? `${accentColor}1A` : ui.inputBg,
+                color: currencyMode === 'BS' ? accentColor : ui.textMuted,
                 textAlign: 'left',
                 cursor: 'pointer'
               }}
@@ -319,11 +395,11 @@ export default function App() {
         </div>
 
         {/* 3. DATOS DE OPERACIÓN */}
-        <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '10px', color: '#8B949E' }}>INTERVENCIÓN</span>
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>INTERVENCIÓN</span>
               <input
                 type="number"
                 step="any"
@@ -332,10 +408,10 @@ export default function App() {
                 onChange={(e) => setIntervencionRate(e.target.value)}
                 style={{
                   width: '85px',
-                  backgroundColor: '#0D1117',
-                  border: '1px solid #30363D',
+                  backgroundColor: ui.inputBg,
+                  border: `1px solid ${ui.border}`,
                   borderRadius: '6px',
-                  color: '#F0B90B',
+                  color: accentColor,
                   fontSize: '11px',
                   fontWeight: 'bold',
                   textAlign: 'center',
@@ -343,12 +419,12 @@ export default function App() {
                   outline: 'none'
                 }}
               />
-              <span style={{ fontSize: '10px', color: '#8B949E' }}>Bs</span>
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>Bs</span>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1fr', gap: '6px', alignItems: 'center' }}>
-            <div style={{ backgroundColor: '#0D1117', border: '1px solid #30363D', borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ fontSize: '11px' }}>{currencyMode === 'USD' ? '💵' : currencyMode === 'USDT' ? '₮' : '🇻🇪'}</span>
               <input
                 type="number"
@@ -356,14 +432,14 @@ export default function App() {
                 value={amount}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setAmount(e.target.value)}
-                style={{ width: '100%', background: 'none', border: 'none', color: '#E6EDF3', fontSize: '15px', fontWeight: '800', outline: 'none' }}
+                style={{ width: '100%', background: 'none', border: 'none', color: ui.textPrimary, fontSize: '15px', fontWeight: '800', outline: 'none' }}
               />
             </div>
 
-            {/* Resumen Mínimo Necesario para no rebotar en la web del banco */}
-            <div style={{ backgroundColor: '#1C190B', border: '1px solid #F0B90B40', borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '8px', color: '#F0B90B', fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
-              <div style={{ fontSize: '12px', fontWeight: '800', color: '#F0B90B' }}>
+            {/* Resumen Mínimo Necesario en Banco */}
+            <div style={{ backgroundColor: `${accentColor}10`, border: `1px solid ${accentColor}40`, borderRadius: '8px', padding: '6px 8px' }}>
+              <div style={{ fontSize: '8px', color: accentColor, fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: accentColor }}>
                 {totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
               </div>
             </div>
@@ -378,9 +454,9 @@ export default function App() {
         </div>
 
         {/* 4. TASA P2P */}
-        <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>TASA P2P</span>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>TASA P2P</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{bank}</span>
               <input
@@ -391,10 +467,10 @@ export default function App() {
                 onChange={(e) => setP2pRate(e.target.value)}
                 style={{
                   width: '80px',
-                  backgroundColor: '#0D1117',
-                  border: '1px solid #30363D',
+                  backgroundColor: ui.inputBg,
+                  border: `1px solid ${ui.border}`,
                   borderRadius: '6px',
-                  color: '#E6EDF3',
+                  color: ui.textPrimary,
                   fontSize: '12px',
                   fontWeight: 'bold',
                   textAlign: 'center',
@@ -405,17 +481,17 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#0D1117', border: '1px solid #21262D', borderRadius: '8px', padding: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', marginBottom: '6px', borderBottom: '1px solid #161B22' }}>
+          <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', marginBottom: '6px', borderBottom: `1px solid ${ui.border}` }}>
               <div>
-                <div style={{ fontSize: '8px', color: '#F0B90B', fontWeight: '800' }}>MEJOR TASA PARA TU MONTO</div>
-                <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer (Verificado)</div>
+                <div style={{ fontSize: '8px', color: accentColor, fontWeight: '800' }}>MEJOR TASA PARA TU MONTO</div>
+                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer (Verificado)</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: '#F0B90B' }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
                 <button
                   onClick={() => setP2pRate(bestRate)}
-                  style={{ backgroundColor: '#F0B90B', color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                  style={{ backgroundColor: accentColor, color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
                   Usar
                 </button>
@@ -425,7 +501,7 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: '800' }}>MERCADO GENERAL</div>
-                <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer</div>
+                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
@@ -440,35 +516,40 @@ export default function App() {
           </div>
         </div>
 
-        {/* 5. TARJETA DESGLOSE Y PREVENCIÓN DE SALDO INSUFICIENTE */}
-        <div style={{ backgroundColor: '#161B22', border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px' }}>
+        {/* 5. TARJETA DESGLOSE COMPLETA */}
+        <div style={{ backgroundColor: ui.cardBg, border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>1. Tasa Intervención:</span>
-            <strong style={{ color: '#F0B90B' }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+            <span style={{ color: ui.textMuted }}>1. Tasa Intervención:</span>
+            <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>2. Subtotal Divisas ($USD):</span>
-            <strong style={{ color: '#E6EDF3' }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <span style={{ color: ui.textMuted }}>2. Subtotal Divisas ($USD):</span>
+            <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#F0B90B' }}>3. Comisión Banco (0.5%):</span>
-            <strong style={{ color: '#F0B90B' }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <span style={{ color: accentColor }}>3. Comisión Banco (0.5%):</span>
+            <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: '1px dashed #30363D', paddingTop: '6px', backgroundColor: '#1C190B', padding: '6px', borderRadius: '6px' }}>
-            <span style={{ color: '#F0B90B', fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
-            <strong style={{ color: '#F0B90B', fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}10`, padding: '6px', borderRadius: '6px' }}>
+            <span style={{ color: accentColor, fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>5. USD Adjudicados:</span>
-            <strong style={{ color: '#58A6FF' }}>${usdComprados.toFixed(2)} USD</strong>
+            <span style={{ color: ui.textMuted }}>5. USD Comprados:</span>
+            <strong style={{ color: '#58A6FF' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1px solid ${ui.border}` }}>
+            <span style={{ color: '#58A6FF', fontWeight: 'bold' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
+            <strong style={{ color: '#58A6FF', fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-            <span style={{ color: '#8B949E' }}>6. USDT Finales Binance (-4.1%):</span>
+            <span style={{ color: ui.textMuted }}>7. USDT Finales Binance (-4.1%):</span>
             <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
 
@@ -477,7 +558,7 @@ export default function App() {
             <div style={{ fontSize: '22px', fontWeight: '900', color: '#0ECB81', margin: '4px 0' }}>
               {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
             </div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#E6EDF3' }}>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
               ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
             </div>
           </div>
