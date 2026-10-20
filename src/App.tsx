@@ -19,16 +19,13 @@ const themePalette = [
   { id: 'melocoton', name: 'Naranja Fuego', accent: '#DC2626', gradient: 'linear-gradient(135deg, #B91C1C 0%, #EF4444 50%, #FCA5A5 100%)', icon: '🍑' },
 ];
 
-// Logos Oficiales de Bancos y Plataformas (URLs directas)
-const officialLogos: Record<string, string> = {
-  BDV: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Banco_de_Venezuela_logo.svg',
-  Banesco: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Banesco_logo.svg',
-  Mercantil: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Mercantil_Banco_logo.svg',
-  BBVA: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/BBVA_2019.svg',
-  BNC: 'https://www.bncenlinea.com/images/logo.png',
-  Binance: 'https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.svg',
-  BCV: 'https://upload.wikimedia.org/wikipedia/commons/5/5b/Banco_Central_de_Venezuela_logo.svg',
-  Bolivar: 'https://upload.wikimedia.org/wikipedia/commons/0/06/Flag_of_Venezuela.svg'
+// Íconos vectoriales / insignias seguras para los bancos
+const bankIcons: Record<string, { label: string; badge: string }> = {
+  BDV: { label: 'BDV', badge: '🔴' },
+  Banesco: { label: 'Banesco', badge: '🟢' },
+  Mercantil: { label: 'Mercantil', badge: '🔵' },
+  BBVA: { label: 'BBVA', badge: '🔷' },
+  BNC: { label: 'BNC', badge: '✳️' },
 };
 
 export default function App() {
@@ -129,10 +126,10 @@ export default function App() {
           </select>
         </div>
 
-        {/* Selector de Bancos con Logos Oficiales */}
+        {/* Selector de Banco con insignias seguras */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            Selecciona tu banco
+            🏛️ Selecciona tu banco
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {['BDV', 'Banesco', 'Mercantil', 'BBVA', 'BNC'].map((b) => (
@@ -156,18 +153,18 @@ export default function App() {
                   transition: 'all 0.2s'
                 }}
               >
-                <img src={officialLogos[b]} alt={b} style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
-                <span>{b}</span>
+                <span>{bankIcons[b].badge}</span>
+                <span>{bankIcons[b].label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Inputs de Tasas con Logos Oficiales */}
+        {/* Inputs de Tasas */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
           <div>
             <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              <img src={officialLogos.BCV} alt="BCV" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Intervención
+              🏛️ Intervención
             </label>
             <input
               type="number"
@@ -178,7 +175,7 @@ export default function App() {
           </div>
           <div>
             <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              <img src={officialLogos.Binance} alt="Binance" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Binance P2P ({bank})
+              🟡 Binance P2P ({bank})
             </label>
             <input
               type="number"
@@ -202,12 +199,12 @@ export default function App() {
           />
         </div>
 
-        {/* Resultados Directos con Logos Oficiales */}
+        {/* Resultados Directos */}
         <div style={{ background: ui.inputBg, padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${activeTheme.accent}`, borderTop: `1px solid ${ui.border}`, borderRight: `1px solid ${ui.border}`, borderBottom: `1px solid ${ui.border}` }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img src={officialLogos.Bolivar} alt="Venezuela" style={{ width: '18px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} /> Bolívares Soberanos:
+              🇻🇪 Bolívares Soberanos:
             </span>
             <strong style={{ fontSize: '18px', fontWeight: '800', background: activeTheme.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
@@ -216,7 +213,7 @@ export default function App() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img src={officialLogos.BCV} alt="BCV" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> Intervención Bancaria:
+              🏛️ Intervención Bancaria:
             </span>
             <strong style={{ fontSize: '15px', fontWeight: '700' }}>
               ${numAmount.toFixed(2)} USD
@@ -225,7 +222,7 @@ export default function App() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img src={officialLogos.Binance} alt="Binance" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> Binance P2P ({bank}):
+              🟡 Binance P2P ({bank}):
             </span>
             <strong style={{ fontSize: '15px', fontWeight: '700' }}>
               {totalUSDT.toFixed(2)} USDT
