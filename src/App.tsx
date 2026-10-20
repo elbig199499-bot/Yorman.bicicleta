@@ -19,7 +19,6 @@ const themePalette = [
   { id: 'melocoton', name: 'Naranja Fuego', accent: '#DC2626', gradient: 'linear-gradient(135deg, #B91C1C 0%, #EF4444 50%, #FCA5A5 100%)', icon: '🍑' },
 ];
 
-// Íconos vectoriales / insignias seguras para los bancos
 const bankIcons: Record<string, { label: string; badge: string }> = {
   BDV: { label: 'BDV', badge: '🔴' },
   Banesco: { label: 'Banesco', badge: '🟢' },
@@ -32,8 +31,10 @@ export default function App() {
   const [selectedThemeIndex, setSelectedThemeIndex] = useState<number>(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
+  // Modo de operación: 'USD' | 'USDT' | 'BS'
+  const [calcMode, setCalcMode] = useState<'USD' | 'USDT' | 'BS'>('USDT');
   const [bank, setBank] = useState<string>('BNC');
-  const [amount, setAmount] = useState<number | string>(500);
+  const [amount, setAmount] = useState<number | string>(100);
   const [bcv, setBcv] = useState<number | string>(881.8769);
   const [p2p, setP2p] = useState<number | string>(1006.55);
 
@@ -64,12 +65,27 @@ export default function App() {
     inputBg: isDarkMode ? '#0B0F17' : '#F8FAFC',
   };
 
-  const numAmount = Number(amount) || 0;
-  const numBcv = Number(bcv) || 1;
-  const numP2p = Number(p2p) || 1;
+  const val = Number(amount) || 0;
+  const rateBcv = Number(bcv) || 1;
+  const rateP2p = Number(p2p) || 1;
 
-  const totalBs = numAmount * numBcv;
-  const totalUSDT = totalBs / numP2p;
+  let totalBs = 0;
+  let totalUSD = 0;
+  let totalUSDT = 0;
+
+  if (calcMode === 'USD') {
+    totalUSD = val;
+    totalBs = val * rateBcv;
+    totalUSDT = totalBs / rateP2p;
+  } else if (calcMode === 'USDT') {
+    totalUSDT = val;
+    totalBs = val * rateP2p;
+    totalUSD = totalBs / rateBcv;
+  } else {
+    totalBs = val;
+    totalUSD = val / rateBcv;
+    totalUSDT = val / rateP2p;
+  }
 
   return (
     <div style={{ backgroundColor: ui.bg, color: ui.text, minHeight: '100vh', padding: '16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -100,138 +116,4 @@ export default function App() {
         {/* Desplegable de Temas */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            🎨 Tema visual (15 Colores)
-          </label>
-          <select
-            value={selectedThemeIndex}
-            onChange={(e) => setSelectedThemeIndex(Number(e.target.value))}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: ui.inputBg,
-              color: ui.text,
-              border: `1.5px solid ${activeTheme.accent}`,
-              borderRadius: '12px',
-              fontSize: '13px',
-              fontWeight: '600',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {themePalette.map((theme, index) => (
-              <option key={theme.id} value={index} style={{ backgroundColor: ui.cardBg, color: ui.text }}>
-                {theme.icon} {theme.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Selector de Banco con insignias seguras */}
-        <div style={{ marginBottom: '18px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            🏛️ Selecciona tu banco
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-            {['BDV', 'Banesco', 'Mercantil', 'BBVA', 'BNC'].map((b) => (
-              <button
-                key={b}
-                onClick={() => setBank(b)}
-                style={{
-                  padding: '10px 6px',
-                  borderRadius: '12px',
-                  border: bank === b ? 'none' : `1px solid ${ui.border}`,
-                  background: bank === b ? activeTheme.gradient : ui.inputBg,
-                  color: bank === b ? '#FFFFFF' : ui.text,
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  boxShadow: bank === b ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <span>{bankIcons[b].badge}</span>
-                <span>{bankIcons[b].label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Inputs de Tasas */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
-          <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              🏛️ Intervención
-            </label>
-            <input
-              type="number"
-              value={bcv}
-              onChange={(e) => setBcv(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '13px', fontWeight: '600', boxSizing: 'border-box', outline: 'none' }}
-            />
-          </div>
-          <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              🟡 Binance P2P ({bank})
-            </label>
-            <input
-              type="number"
-              value={p2p}
-              onChange={(e) => setP2p(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '13px', fontWeight: '600', boxSizing: 'border-box', outline: 'none' }}
-            />
-          </div>
-        </div>
-
-        {/* Input de Monto Único */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            💵 Dólares a comprar (USD)
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{ width: '100%', padding: '12px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '12px', fontSize: '15px', fontWeight: '700', boxSizing: 'border-box', outline: 'none' }}
-          />
-        </div>
-
-        {/* Resultados Directos */}
-        <div style={{ background: ui.inputBg, padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${activeTheme.accent}`, borderTop: `1px solid ${ui.border}`, borderRight: `1px solid ${ui.border}`, borderBottom: `1px solid ${ui.border}` }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🇻🇪 Bolívares Soberanos:
-            </span>
-            <strong style={{ fontSize: '18px', fontWeight: '800', background: activeTheme.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-            </strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🏛️ Intervención Bancaria:
-            </span>
-            <strong style={{ fontSize: '15px', fontWeight: '700' }}>
-              ${numAmount.toFixed(2)} USD
-            </strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🟡 Binance P2P ({bank}):
-            </span>
-            <strong style={{ fontSize: '15px', fontWeight: '700' }}>
-              {totalUSDT.toFixed(2)} USDT
-            </strong>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-  );
-}
+            🎨
