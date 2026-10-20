@@ -8,15 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { label: string; comms: { label: string; val: string }[] }> = {
-  BDV: { label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; brandColor: string; textColor: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', brandColor: '#002855', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', brandColor: '#004481', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', brandColor: '#00539F', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', brandColor: '#00A859', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', brandColor: '#002D62', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', brandColor: '#00A3E0', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', brandColor: '#003366', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', brandColor: '#E31B23', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -76,13 +76,13 @@ const playChimeSound = (muted: boolean) => {
 export default function App() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [activeColorIndex, setActiveColorIndex] = useState<number>(2);
+  const [activeColorIndex, setActiveColorIndex] = useState<number>(2); // Cobalto por defecto como en tu captura
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
-  const [bank, setBank] = useState<string>('Mercantil');
+  const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('BS');
   const [amount, setAmount] = useState<string>('200000');
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
@@ -290,14 +290,18 @@ export default function App() {
             <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}20`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
-            {Object.keys(bankData).map((bKey) => (
-              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '75px', padding: '8px 4px', borderRadius: '12px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', color: '#000' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}>{bKey}</span>
-                </div>
-                <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bankData[bKey].label}</span>
-              </button>
-            ))}
+            {Object.keys(bankData).map((bKey) => {
+              const bInfo = bankData[bKey];
+              const isSelected = bank === bKey;
+              return (
+                <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '78px', padding: '8px 4px', borderRadius: '12px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: bInfo.brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', padding: '2px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '900', color: bInfo.textColor, textAlign: 'center', lineHeight: '1.1', textTransform: 'uppercase' }}>{bKey}</span>
+                  </div>
+                  <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bInfo.label}</span>
+                </button>
+              );
+            })}
           </div>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <span style={{ backgroundColor: ui.inputBg, color: ui.textPrimary, border: `1px solid ${ui.border}`, padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '900' }}>{bank}</span>
