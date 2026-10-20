@@ -1,12 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Galería de Colores de Tema
+// Galería de Colores de Tema con Tonalidades Dinámicas de Fondo
 const colorPalette = [
-  { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡' },
-  { id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢' },
-  { id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', icon: '🔵' },
-  { id: 'morado', name: 'Morado', hex: '#8B5CF6', icon: '🟣' },
-  { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴' },
+  {
+    id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡',
+    darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#3A3320', darkInput: '#13110C',
+    lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC'
+  },
+  {
+    id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢',
+    darkBg: '#09130E', darkCard: '#111F18', darkBorder: '#203A2D', darkInput: '#0B150F',
+    lightBg: '#F2FAF6', lightCard: '#FFFFFF', lightBorder: '#C6EEDC', lightInput: '#E8F6EF'
+  },
+  {
+    id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', icon: '🔵',
+    darkBg: '#090F1A', darkCard: '#111A29', darkBorder: '#20304C', darkInput: '#0C111D',
+    lightBg: '#F2F6FD', lightCard: '#FFFFFF', lightBorder: '#C6D8FB', lightInput: '#E8F0FC'
+  },
+  {
+    id: 'morado', name: 'Morado', hex: '#8B5CF6', icon: '🟣',
+    darkBg: '#0E0A18', darkCard: '#181229', darkBorder: '#30224E', darkInput: '#100C1D',
+    lightBg: '#F7F3FD', lightCard: '#FFFFFF', lightBorder: '#DFCFFC', lightInput: '#F0E8FC'
+  },
+  {
+    id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴',
+    darkBg: '#16090C', darkCard: '#241015', darkBorder: '#48202A', darkInput: '#190A0D',
+    lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE'
+  },
 ];
 
 // Estructura de Bancos
@@ -62,7 +82,7 @@ export default function App() {
     return saved ? Number(saved) : 100;
   });
 
-  // Estado de Selección
+  // Estado de Selección de Banco y Moneda
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
   
@@ -72,22 +92,23 @@ export default function App() {
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
   const [bestRate, setBestRate] = useState<string>('1005.36');
   
-  // Repetición de Ciclos
+  // Estado para la sección final de CICLOS
   const [cycles, setCycles] = useState<string>('3');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastSync, setLastSync] = useState<string>('En vivo');
 
-  const accentColor = colorPalette[activeColorIndex].hex;
+  const theme = colorPalette[activeColorIndex];
+  const accentColor = theme.hex;
 
-  // Paleta dinámica Claro / Oscuro
+  // Paleta Dinámica
   const ui = {
-    bg: isDarkMode ? '#0E1117' : '#F1F5F9',
-    cardBg: isDarkMode ? '#161B22' : '#FFFFFF',
-    border: isDarkMode ? '#30363D' : '#E2E8F0',
+    bg: isDarkMode ? theme.darkBg : theme.lightBg,
+    cardBg: isDarkMode ? theme.darkCard : theme.lightCard,
+    border: isDarkMode ? theme.darkBorder : theme.lightBorder,
     textPrimary: isDarkMode ? '#E6EDF3' : '#0F172A',
     textMuted: isDarkMode ? '#8B949E' : '#64748B',
-    inputBg: isDarkMode ? '#0D1117' : '#F8FAFC',
+    inputBg: isDarkMode ? theme.darkInput : theme.lightInput,
   };
 
   const changeZoom = (delta: number) => {
@@ -147,7 +168,7 @@ export default function App() {
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
-  const cEnvioPct = 2.5;        // Comisión Envío / Uso Tarjeta Divisas (2.5%)
+  const cEnvioPct = 2.5;        // Comisión Envío BDV (2.5%)
   const cBinancePct = 4.1;      // Comisión Binance P2P (4.1%)
   const cAdjudicacionPct = 0.5; // Comisión Adjudicación Banco (0.5%)
 
@@ -198,7 +219,7 @@ export default function App() {
   const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
   const gananciaPorcentaje = totalBsNecesariosEnBanco > 0 ? (gananciaBs / totalBsNecesariosEnBanco) * 100 : 0;
 
-  // Interés Compuesto Real para Múltiples Ciclos (Reinversión Total)
+  // Interés Compuesto Real para Múltiples Ciclos
   const valCycles = Math.max(1, parseInt(cycles) || 1);
 
   let finalTotalNeto = 0;
@@ -242,8 +263,27 @@ export default function App() {
       fontFamily: 'system-ui, -apple-system, sans-serif',
       fontSize: `${zoomLevel}%`,
       padding: '12px 8px 30px 8px',
-      transition: 'background-color 0.2s, color 0.2s'
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
+      {/* Reglas de Animación CSS */}
+      <style>{`
+        @keyframes pulseGlow {
+          0% { transform: scale(1); box-shadow: 0 0 0px rgba(14, 203, 129, 0); }
+          50% { transform: scale(1.015); box-shadow: 0 0 15px rgba(14, 203, 129, 0.25); }
+          100% { transform: scale(1); box-shadow: 0 0 0px rgba(14, 203, 129, 0); }
+        }
+        @keyframes spinIcon {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .animate-update {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .animate-update:hover {
+          transform: translateY(-2px);
+        }
+      `}</style>
+
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
 
         {/* Encabezado Superior */}
@@ -263,10 +303,14 @@ export default function App() {
                 padding: '4px 8px',
                 borderRadius: '6px',
                 fontSize: '10px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
               }}
             >
-              {isLoading ? '⏳' : `🔄 ${lastSync}`}
+              <span style={{ display: 'inline-block', animation: isLoading ? 'spinIcon 1s linear infinite' : 'none' }}>🔄</span>
+              <span>{isLoading ? 'Actualizando...' : lastSync}</span>
             </button>
           </div>
 
@@ -318,8 +362,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* 1. BANCO */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+        {/* 1. SECCIÓN DE BANCOS */}
+        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>BANCO</span>
             <span style={{ fontSize: '10px', color: '#0ECB81', backgroundColor: '#0ECB811A', padding: '2px 6px', borderRadius: '10px', fontWeight: '800' }}>ACTIVO</span>
@@ -343,7 +387,8 @@ export default function App() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <div style={{
@@ -362,298 +407,4 @@ export default function App() {
               {bank}
             </span>
             {bankData[bank]?.comms.map((c, idx) => (
-              <span key={idx} style={{
-                backgroundColor: idx === 0 ? `${accentColor}1A` : ui.inputBg,
-                border: idx === 0 ? `1px solid ${accentColor}` : `1px solid ${ui.border}`,
-                color: idx === 0 ? accentColor : ui.textMuted,
-                padding: '3px 6px',
-                borderRadius: '6px',
-                fontSize: '10px',
-                fontWeight: '700'
-              }}>
-                {c.label} {c.val}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* 2. MONEDA DE ENTRADA */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
-          <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800', display: 'block', marginBottom: '8px' }}>
-            MONEDA DE ENTRADA
-          </span>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-            <button
-              onClick={() => setCurrencyMode('USDT')}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : `1px solid ${ui.border}`,
-                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
-                color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT a vender</div>
-            </button>
-
-            <button
-              onClick={() => setCurrencyMode('USD')}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: currencyMode === 'USD' ? '1.5px solid #58A6FF' : `1px solid ${ui.border}`,
-                backgroundColor: currencyMode === 'USD' ? '#1D63ED1A' : ui.inputBg,
-                color: currencyMode === 'USD' ? '#58A6FF' : ui.textMuted,
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>USD a comprar</div>
-            </button>
-
-            <button
-              onClick={() => setCurrencyMode('BS')}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: currencyMode === 'BS' ? `1.5px solid ${accentColor}` : `1px solid ${ui.border}`,
-                backgroundColor: currencyMode === 'BS' ? `${accentColor}1A` : ui.inputBg,
-                color: currencyMode === 'BS' ? accentColor : ui.textMuted,
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>🇻🇪 Bs</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>Bs en cuenta</div>
-            </button>
-          </div>
-        </div>
-
-        {/* 3. DATOS DE OPERACIÓN */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '10px', color: ui.textMuted }}>INTERVENCIÓN</span>
-              <input
-                type="number"
-                step="any"
-                value={intervencionRate}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setIntervencionRate(e.target.value)}
-                style={{
-                  width: '85px',
-                  backgroundColor: ui.inputBg,
-                  border: `1px solid ${ui.border}`,
-                  borderRadius: '6px',
-                  color: accentColor,
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  padding: '3px',
-                  outline: 'none'
-                }}
-              />
-              <span style={{ fontSize: '10px', color: ui.textMuted }}>Bs</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1fr', gap: '6px', alignItems: 'center' }}>
-            <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '11px' }}>{currencyMode === 'USD' ? '💵' : currencyMode === 'USDT' ? '₮' : '🇻🇪'}</span>
-              <input
-                type="number"
-                step="any"
-                value={amount}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{ width: '100%', background: 'none', border: 'none', color: ui.textPrimary, fontSize: '15px', fontWeight: '800', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ backgroundColor: `${accentColor}10`, border: `1px solid ${accentColor}40`, borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '8px', color: accentColor, fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
-              <div style={{ fontSize: '12px', fontWeight: '800', color: accentColor }}>
-                {totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#0A1E17', border: '1px solid #0ECB8140', borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: 'bold' }}>USDT (P2P)</div>
-              <div style={{ fontSize: '12px', fontWeight: '800', color: '#0ECB81' }}>
-                {usdtP2p.toFixed(2)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. TASA P2P */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>TASA P2P</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{bank}</span>
-              <input
-                type="number"
-                step="any"
-                value={p2pRate}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setP2pRate(e.target.value)}
-                style={{
-                  width: '80px',
-                  backgroundColor: ui.inputBg,
-                  border: `1px solid ${ui.border}`,
-                  borderRadius: '6px',
-                  color: ui.textPrimary,
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  padding: '3px',
-                  outline: 'none'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', marginBottom: '6px', borderBottom: `1px solid ${ui.border}` }}>
-              <div>
-                <div style={{ fontSize: '8px', color: accentColor, fontWeight: '800' }}>MEJOR TASA PARA TU MONTO</div>
-                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer (Verificado)</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button
-                  onClick={() => setP2pRate(bestRate)}
-                  style={{ backgroundColor: accentColor, color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  Usar
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: '800' }}>MERCADO GENERAL</div>
-                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button
-                  onClick={() => setP2pRate(p2pRate)}
-                  style={{ backgroundColor: '#0ECB8120', color: '#0ECB81', border: '1px solid #0ECB81', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  Usar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. TARJETA DESGLOSE DE 1 CICLO */}
-        <div style={{ backgroundColor: ui.cardBg, border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted }}>1. Tasa Intervención:</span>
-            <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted }}>2. Subtotal Divisas ($USD):</span>
-            <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: accentColor }}>3. Comisión Banco (0.5%):</span>
-            <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}10`, padding: '6px', borderRadius: '6px' }}>
-            <span style={{ color: accentColor, fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
-            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted }}>5. USD Comprados:</span>
-            <strong style={{ color: '#58A6FF' }}>${usdAdjudicados.toFixed(2)} USD</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1px solid ${ui.border}` }}>
-            <span style={{ color: '#58A6FF', fontWeight: 'bold' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
-            <strong style={{ color: '#58A6FF', fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted }}>7. USDT Finales Binance (-4.1%):</span>
-            <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
-          </div>
-
-          {/* GANANCIA DE 1 CICLO */}
-          <div style={{ backgroundColor: '#0ECB811A', border: '1px solid #0ECB81', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <span style={{ fontSize: '10px', color: '#0ECB81', fontWeight: '800', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
-            <div style={{ fontSize: '22px', fontWeight: '900', color: '#0ECB81', margin: '4px 0' }}>
-              {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-            </div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
-              ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
-            </div>
-          </div>
-        </div>
-
-        {/* 6. PROYECCIÓN DE REINVERSIÓN COMPUESTA */}
-        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${accentColor}`, borderRadius: '14px', padding: '14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <div>
-              <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>
-                🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA
-              </span>
-              <span style={{ fontSize: '9px', color: ui.textMuted }}>
-                Reinversión total del capital ganado en cada vuelta
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '4px 8px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 'bold', color: ui.textMuted }}>VUELTAS:</span>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={cycles}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setCycles(e.target.value)}
-                style={{
-                  width: '40px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: accentColor,
-                  fontSize: '14px',
-                  fontWeight: '900',
-                  textAlign: 'center',
-                  outline: 'none'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ backgroundColor: `${accentColor}15`, border: `1px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <span style={{ fontSize: '10px', color: accentColor, fontWeight: '800', letterSpacing: '0.5px' }}>
-              {labelUnidad}
-            </span>
-            <div style={{ fontSize: '24px', fontWeight: '900', color: accentColor, margin: '4px 0' }}>
-              {formatTotal}
-            </div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
-              {subtextGanancia}
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
+              <span key={idx
