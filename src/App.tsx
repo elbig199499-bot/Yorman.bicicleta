@@ -6,15 +6,15 @@ const colorPalette = [
   { id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', darkBg: '#090F1A', darkCard: '#111A29', darkBorder: '#1E3A6E' }
 ];
 
-const bankData: Record<string, { label: string; color: string; comm: string }> = {
-  BDV: { label: 'BDV', color: '#002855', comm: '2.5%' },
-  BBVA: { label: 'BBVA', color: '#004481', comm: '2.0%' },
-  Mercantil: { label: 'Mercantil', color: '#00539F', comm: '2.5%' },
-  Banesco: { label: 'Banesco', color: '#00A859', comm: '2.5%' },
-  BNC: { label: 'BNC', color: '#002D62', comm: '2.5%' },
-  Bancamiga: { label: 'Bancamiga', color: '#00A3E0', comm: '2.5%' },
-  Tesoro: { label: 'Tesoro', color: '#003366', comm: '0%' },
-  BDT: { label: 'BDT', color: '#E31B23', comm: '0%' }
+const bankData: Record<string, { label: string; color: string }> = {
+  BDV: { label: 'BDV', color: '#002855' },
+  BBVA: { label: 'BBVA', color: '#004481' },
+  Mercantil: { label: 'Mercantil', color: '#00539F' },
+  Banesco: { label: 'Banesco', color: '#00A859' },
+  BNC: { label: 'BNC', color: '#002D62' },
+  Bancamiga: { label: 'Bancamiga', color: '#00A3E0' },
+  Tesoro: { label: 'Tesoro', color: '#003366' },
+  BDT: { label: 'BDT', color: '#E31B23' }
 };
 
 export default function App() {
@@ -37,9 +37,8 @@ export default function App() {
     <div style={{ backgroundColor: theme.darkBg, color: '#FFFFFF', minHeight: '100vh', fontFamily: 'sans-serif', padding: '12px' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto' }}>
         
-        {/* Cabecera */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <span style={{ fontWeight: '900', color: theme.hex, fontSize: '16px' }}>📊 Yorman Estadísticas</span>
+          <span style={{ fontWeight: '900', color: theme.hex, fontSize: '16px' }}>📊 Yorman Estadísticas Pro</span>
           <div style={{ display: 'flex', gap: '6px' }}>
             {colorPalette.map((c, idx) => (
               <button key={c.id} onClick={() => setActiveTheme(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: activeTheme === idx ? `2px solid ${theme.hex}` : '1px solid #4A3E20', backgroundColor: theme.darkCard, color: '#FFF', fontSize: '10px', cursor: 'pointer' }}>
@@ -49,7 +48,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Selección de Bancos */}
         <div style={{ backgroundColor: theme.darkCard, border: `1.5px solid ${theme.darkBorder}`, borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
           <span style={{ fontSize: '11px', color: '#CBD5E1', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>BANCO ACTIVO</span>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -68,7 +66,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Datos de Operación */}
         <div style={{ backgroundColor: theme.darkCard, border: `1.5px solid ${theme.darkBorder}`, borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
@@ -82,7 +79,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Resultado Ganancia */}
         <div style={{ backgroundColor: theme.darkCard, border: `2px solid ${theme.hex}`, borderRadius: '14px', padding: '14px', marginBottom: '14px', textAlign: 'center' }}>
           <span style={{ fontSize: '10px', color: '#CBD5E1', fontWeight: 'bold' }}>GANANCIA ESTIMADA (1 CICLO)</span>
           <div style={{ fontSize: '22px', fontWeight: '900', color: '#00FF9D', margin: '4px 0' }}>
@@ -91,7 +87,6 @@ export default function App() {
           <div style={{ fontSize: '11px', color: '#FFF' }}>Total necesario: {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
         </div>
 
-        {/* Reinversión Compuesta */}
         <div style={{ backgroundColor: theme.darkCard, border: `2px solid ${theme.hex}`, borderRadius: '14px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: theme.hex }}>🔄 REINVERSIÓN COMPUESTA</span>
