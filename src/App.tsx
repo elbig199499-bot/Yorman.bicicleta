@@ -1,39 +1,52 @@
 import { useState, useEffect } from 'react';
 
-const themePalette = [
-  { id: 'cobalto', name: 'Azul Cobalto', accent: '#3b82f6', icon: '🔷' },
-  { id: 'esmeralda', name: 'Verde Esmeralda', accent: '#10b981', icon: '🟩' },
-  { id: 'terracota', name: 'Terracota Warm', accent: '#ea580c', icon: '🟧' },
-  { id: 'mostaza', name: 'Amarillo Mostaza', accent: '#eab308', icon: '🟨' },
-  { id: 'rosapalo', name: 'Rosa Neon / Glam', accent: '#ec4899', icon: '🌸' },
-  { id: 'turquesa', name: 'Turquesa Mar', accent: '#06b6d4', icon: '🌊' },
-  { id: 'marengo', name: 'Gris Grafito', accent: '#64748b', icon: '⬛' },
-  { id: 'coral', name: 'Rojo Coral', accent: '#f43f5e', icon: '🪸' },
-  { id: 'obispo', name: 'Morado Neón', accent: '#8b5cf6', icon: '🟣' },
-  { id: 'menta', name: 'Verde Menta', accent: '#14b8a6', icon: '🍃' },
-  { id: 'ocre', name: 'Ocre Dorado', accent: '#d97706', icon: '🟡' },
-  { id: 'marfil', name: 'Ámbar Marfil', accent: '#f59e0b', icon: '🤍' },
-  { id: 'petroleo', name: 'Azul Petróleo', accent: '#0ea5e9', icon: '🚙' },
-  { id: 'lavanda', name: 'Lavanda Deep', accent: '#84cc16', icon: '🪻' },
-  { id: 'melocoton', name: 'Naranja Fuego', accent: '#ef4444', icon: '🍑' },
-];
+// Logos e íconos estilo Binance Pro
+const bankLogos: Record<string, { logo: string; name: string; comms: { label: string; val: string }[] }> = {
+  BDV: {
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Banco_de_Venezuela_logo.svg',
+    name: 'BDV',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '1.5%' }]
+  },
+  BBVA: {
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/BBVA_2019.svg',
+    name: 'BBVA',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.0%' }]
+  },
+  Mercantil: {
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Mercantil_Banco_logo.svg',
+    name: 'Mercantil',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.5%' }]
+  },
+  Banesco: {
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Banesco_logo.svg',
+    name: 'Banesco',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.5%' }]
+  },
+  BNC: {
+    logo: 'https://www.bncenlinea.com/images/logo.png',
+    name: 'BNC',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.5%' }]
+  },
+  Bancamiga: {
+    logo: '🟢',
+    name: 'Bancamiga',
+    comms: [{ label: 'Compra', val: '0.5%' }, { label: 'Virtual', val: '2.5%' }]
+  },
+  Tesoro: {
+    logo: '🟡',
+    name: 'Tesoro',
+    comms: [{ label: 'Compra', val: '0.5%' }]
+  }
+};
 
 export default function App() {
-  const [selectedThemeIndex, setSelectedThemeIndex] = useState<number>(0);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-
   const [bank, setBank] = useState<string>('BDV');
-  const [inputCurrency, setInputCurrency] = useState<'BS' | 'USD' | 'USDT'>('USD');
-  const [amount, setAmount] = useState<number | string>(200);
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
+  const [amount, setAmount] = useState<number | string>('200');
 
-  // Tasas
-  const [bcvRate, setBcvRate] = useState<number | string>(881.8769);
-  const [p2pRate, setP2pRate] = useState<number | string>(1006.55);
-
-  // Comisiones (%)
-  const [commCompra, setCommCompra] = useState<number | string>(0.5);
-  const [commEnvio, setCommEnvio] = useState<number | string>(2.5);
-  const [commBinance, setCommBinance] = useState<number | string>(4.1);
+  const [bcvRate, setBcvRate] = useState<number | string>(791.6667);
+  const [p2pRate, setP2pRate] = useState<number | string>(939.00);
+  const [showResults, setShowResults] = useState<boolean>(false);
 
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
@@ -41,36 +54,25 @@ export default function App() {
       .then((data) => {
         if (data && data.promedio) setBcvRate(data.promedio);
       })
-      .catch((err) => console.error('Error BCV:', err));
+      .catch((err) => console.error(err));
 
     fetch('https://ve.dolarapi.com/v1/dolares/binance')
       .then((res) => res.json())
       .then((data) => {
         if (data && data.promedio) setP2pRate(data.promedio);
       })
-      .catch((err) => console.error('Error Binance:', err));
-  }, [bank]);
-
-  const activeTheme = themePalette[selectedThemeIndex];
-
-  const ui = {
-    bg: isDarkMode ? '#0d131f' : '#f1f5f9',
-    cardBg: isDarkMode ? '#151f32' : '#ffffff',
-    text: isDarkMode ? '#f8fafc' : '#0f172a',
-    subtext: isDarkMode ? '#94a3b8' : '#64748b',
-    border: isDarkMode ? '#22324d' : '#e2e8f0',
-    inputBg: isDarkMode ? '#0a0f18' : '#f8fafc',
-  };
+      .catch((err) => console.error(err));
+  }, []);
 
   const valAmount = Number(amount) || 0;
   const baseBcv = Number(bcvRate) || 1;
   const baseP2p = Number(p2pRate) || 1;
 
-  const cCompra = Number(commCompra) || 0;
-  const cEnvio = Number(commEnvio) || 0;
-  const cBinance = Number(commBinance) || 0;
+  // Comisiones estándar
+  const cCompra = 0.5;
+  const cEnvio = 2.5;
+  const cBinance = 4.1;
 
-  // Tasa Real únicamente con la comisión de compra (+0.5%)
   const tasaRealCompra = baseBcv * (1 + cCompra / 100);
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
@@ -78,11 +80,11 @@ export default function App() {
   let bsTotalesDebitar = 0;
   let usdtBinance = 0;
 
-  if (inputCurrency === 'USD') {
+  if (currencyMode === 'USD') {
     usdComprados = valAmount;
     bsTotalesDebitar = usdComprados * tasaRealCompra;
     usdtBinance = usdComprados * factorRetornoNeto;
-  } else if (inputCurrency === 'USDT') {
+  } else if (currencyMode === 'USDT') {
     usdtBinance = valAmount;
     usdComprados = usdtBinance / (factorRetornoNeto || 1);
     bsTotalesDebitar = usdComprados * tasaRealCompra;
@@ -92,241 +94,277 @@ export default function App() {
     usdtBinance = usdComprados * factorRetornoNeto;
   }
 
-  const usdEnviados = usdComprados * (1 - cEnvio / 100);
   const bsVentaP2P = usdtBinance * baseP2p;
   const gananciaBs = bsVentaP2P - bsTotalesDebitar;
   const gananciaUsd = gananciaBs / (tasaRealCompra || 1);
   const gananciaPorcentaje = bsTotalesDebitar > 0 ? (gananciaBs / bsTotalesDebitar) * 100 : 0;
 
   return (
-    <div style={{ backgroundColor: ui.bg, color: ui.text, minHeight: '100vh', padding: '16px 8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: '420px', margin: '0 auto', backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '24px', padding: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+    <div style={{ backgroundColor: '#0B0E11', color: '#EAECSF', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      
+      {/* 1. Ticker / Header Superior */}
+      <div style={{ backgroundColor: '#12161C', borderBottom: '1px solid #1E2329', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <span style={{ fontWeight: 'bold', color: '#F0B90B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            🚲 BICICLETA PRO
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: '#848E9C' }}>🏛️ Intervención</span>
+            <strong style={{ color: '#EAECSF' }}>{Number(bcvRate).toFixed(2)} Bs</strong>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: '#848E9C' }}>🟡 Tasa P2P</span>
+            <strong style={{ color: '#F0B90B' }}>{Number(p2pRate).toFixed(2)} Bs</strong>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ backgroundColor: '#F0B90B', color: '#000', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>A</span>
+          <span style={{ color: '#EAECSF', fontWeight: 'bold' }}>admin ▾</span>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '16px' }}>
         
-        {/* Encabezado */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: activeTheme.accent }}>
-            🚲 Bicicleta Intervención → Binance P2P
-          </h2>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{ padding: '6px 12px', borderRadius: '20px', border: `1px solid ${ui.border}`, backgroundColor: ui.inputBg, color: ui.text, cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
-            {isDarkMode ? '☀️ Claro' : '🌙 Oscuro'}
-          </button>
+        {/* 2. Pestañas Principales estilo Dashboard */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '16px' }}>
+          {['Gráficos', 'Conversor', 'PNL 🟢', 'Pista 🟢'].map((tab, idx) => (
+            <button
+              key={tab}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: idx === 1 ? '1px solid #F0B90B' : '1px solid #2B313A',
+                backgroundColor: idx === 1 ? '#1E2329' : '#14181D',
+                color: idx === 1 ? '#F0B90B' : '#848E9C',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
-        {/* Tema */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
-            TEMA DE LA APP (15 Colores)
-          </label>
-          <select
-            value={selectedThemeIndex}
-            onChange={(e) => setSelectedThemeIndex(Number(e.target.value))}
-            style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: ui.text, border: `1.5px solid ${activeTheme.accent}`, borderRadius: '12px', fontSize: '13px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
-          >
-            {themePalette.map((theme, index) => (
-              <option key={theme.id} value={index} style={{ backgroundColor: ui.cardBg, color: ui.text }}>
-                {theme.icon} {theme.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* 3. Panel de Selección de Banco */}
+        <div style={{ backgroundColor: '#181A20', border: '1px solid #2B313A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '11px', color: '#848E9C', fontWeight: 'bold' }}>BANCO</span>
+            <span style={{ fontSize: '10px', color: '#0ECB81', backgroundColor: '#0ECB811A', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>ACTIVO</span>
+          </div>
 
-        {/* Selección de Banco */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
-            SELECCIONA TU BANCO
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
-            {['BDV', 'Banesco', 'Mercantil', 'BBVA', 'BNC'].map((b) => (
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '10px' }}>
+            {Object.keys(bankLogos).map((bKey) => (
               <button
-                key={b}
-                onClick={() => setBank(b)}
+                key={bKey}
+                onClick={() => setBank(bKey)}
                 style={{
-                  padding: '8px 2px',
+                  minWidth: '70px',
+                  padding: '8px',
                   borderRadius: '10px',
-                  border: bank === b ? `2px solid ${activeTheme.accent}` : `1px solid ${ui.border}`,
-                  backgroundColor: bank === b ? activeTheme.accent : ui.inputBg,
-                  color: bank === b ? '#ffffff' : ui.text,
+                  border: bank === bKey ? '1.5px solid #F0B90B' : '1px solid #2B313A',
+                  backgroundColor: bank === bKey ? '#2B2F36' : '#1E2329',
+                  color: '#EAECSF',
                   fontSize: '11px',
-                  fontWeight: '800',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
                   cursor: 'pointer'
                 }}
               >
-                {b}
+                <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {bankLogos[bKey].logo.startsWith('http') ? (
+                    <img src={bankLogos[bKey].logo} alt={bKey} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <span>{bankLogos[bKey].logo}</span>
+                  )}
+                </div>
+                <span>{bKey}</span>
               </button>
+            ))}
+          </div>
+
+          {/* Comisiones del Banco Seleccionado */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <span style={{ backgroundColor: '#2B313A', color: '#EAECSF', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold' }}>
+              {bank}
+            </span>
+            {bankLogos[bank]?.comms.map((c, i) => (
+              <span key={i} style={{ backgroundColor: i === 0 ? '#F0B90B20' : '#1E2329', border: i === 0 ? '1px solid #F0B90B' : '1px solid #2B313A', color: i === 0 ? '#F0B90B' : '#848E9C', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold' }}>
+                {c.label} {c.val}
+              </span>
             ))}
           </div>
         </div>
 
-        {/* Moneda de Entrada */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
+        {/* 4. Moneda de Entrada con Subtítulos Explicativos */}
+        <div style={{ backgroundColor: '#181A20', border: '1px solid #2B313A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '11px', color: '#848E9C', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
             MONEDA DE ENTRADA
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+          </span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
             <button
-              onClick={() => setInputCurrency('BS')}
+              onClick={() => setCurrencyMode('USDT')}
               style={{
-                padding: '10px 4px',
-                borderRadius: '10px',
-                border: inputCurrency === 'BS' ? `2px solid ${activeTheme.accent}` : `1px solid ${ui.border}`,
-                backgroundColor: inputCurrency === 'BS' ? activeTheme.accent : ui.inputBg,
-                color: inputCurrency === 'BS' ? '#ffffff' : ui.text,
-                fontSize: '11px',
-                fontWeight: '800',
+                padding: '10px 6px',
+                borderRadius: '8px',
+                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : '1px solid #2B313A',
+                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : '#1E2329',
+                color: currencyMode === 'USDT' ? '#0ECB81' : '#848E9C',
+                textAlign: 'left',
                 cursor: 'pointer'
               }}
             >
-              🇻🇪 Bolívares (Bs)
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>₮ USDT</div>
+              <div style={{ fontSize: '9px', opacity: 0.8 }}>USDT vendido</div>
             </button>
+
             <button
-              onClick={() => setInputCurrency('USD')}
+              onClick={() => setCurrencyMode('USD')}
               style={{
-                padding: '10px 4px',
-                borderRadius: '10px',
-                border: inputCurrency === 'USD' ? `2px solid ${activeTheme.accent}` : `1px solid ${ui.border}`,
-                backgroundColor: inputCurrency === 'USD' ? activeTheme.accent : ui.inputBg,
-                color: inputCurrency === 'USD' ? '#ffffff' : ui.text,
-                fontSize: '11px',
-                fontWeight: '800',
+                padding: '10px 6px',
+                borderRadius: '8px',
+                border: currencyMode === 'USD' ? '1.5px solid #0ECB81' : '1px solid #2B313A',
+                backgroundColor: currencyMode === 'USD' ? '#0ECB8110' : '#1E2329',
+                color: currencyMode === 'USD' ? '#0ECB81' : '#848E9C',
+                textAlign: 'left',
                 cursor: 'pointer'
               }}
             >
-              💵 USD Intervención
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>💵 USD</div>
+              <div style={{ fontSize: '9px', opacity: 0.8 }}>USD comprado</div>
             </button>
+
             <button
-              onClick={() => setInputCurrency('USDT')}
+              onClick={() => setCurrencyMode('BS')}
               style={{
-                padding: '10px 4px',
-                borderRadius: '10px',
-                border: inputCurrency === 'USDT' ? `2px solid ${activeTheme.accent}` : `1px solid ${ui.border}`,
-                backgroundColor: inputCurrency === 'USDT' ? activeTheme.accent : ui.inputBg,
-                color: inputCurrency === 'USDT' ? '#ffffff' : ui.text,
-                fontSize: '11px',
-                fontWeight: '800',
+                padding: '10px 6px',
+                borderRadius: '8px',
+                border: currencyMode === 'BS' ? '1.5px solid #0ECB81' : '1px solid #2B313A',
+                backgroundColor: currencyMode === 'BS' ? '#0ECB8110' : '#1E2329',
+                color: currencyMode === 'BS' ? '#0ECB81' : '#848E9C',
+                textAlign: 'left',
                 cursor: 'pointer'
               }}
             >
-              ₮ USDT Binance
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>🇻🇪 Bs</div>
+              <div style={{ fontSize: '9px', opacity: 0.8 }}>Bs disponibles</div>
             </button>
+          </div>
+
+          <div style={{ fontSize: '10px', color: '#848E9C', backgroundColor: '#1E2329', padding: '8px', borderRadius: '6px' }}>
+            {currencyMode === 'USDT' && 'Vendiste USDT y quieres saber cuántos USDT puedes recomprar.'}
+            {currencyMode === 'USD' && 'Dólares a solicitar por intervención bancaria directa.'}
+            {currencyMode === 'BS' && 'Monto total en Bolívares que posees en tu cuenta bancaria.'}
           </div>
         </div>
 
-        {/* Input de Cantidad */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
-            {inputCurrency === 'USD' && 'CANTIDAD DE USD A COMPRAR'}
-            {inputCurrency === 'BS' && 'CANTIDAD DE BS DISPONIBLES'}
-            {inputCurrency === 'USDT' && 'CANTIDAD DE USDT A OBTENER/VENDER'}
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{ width: '100%', padding: '12px', backgroundColor: ui.inputBg, color: ui.text, border: `1.5px solid ${activeTheme.accent}`, borderRadius: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
-          />
-        </div>
-
-        {/* Tasas de Intervención y P2P */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-          <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '4px', textAlign: 'center', textTransform: 'uppercase' }}>
-              TASA INTERVENCIÓN (BASE)
-            </label>
-            <input
-              type="number"
-              value={bcvRate}
-              onChange={(e) => setBcvRate(e.target.value)}
-              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: activeTheme.accent, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '15px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
-            />
+        {/* 5. Datos de Operación */}
+        <div style={{ backgroundColor: '#181A20', border: '1px solid #2B313A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '11px', color: '#848E9C', fontWeight: 'bold' }}>DATOS DE OPERACIÓN</span>
+            <span style={{ fontSize: '10px', color: '#848E9C' }}>BCV · P2P</span>
           </div>
-          <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '4px', textAlign: 'center', textTransform: 'uppercase' }}>
-              VENTA P2P ({bank})
-            </label>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+            <div>
+              <label style={{ fontSize: '11px', color: '#848E9C', display: 'block', marginBottom: '4px' }}>
+                Cantidad {currencyMode}
+              </label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Ej: 200"
+                style={{ width: '100%', padding: '10px', backgroundColor: '#0B0E11', border: '1px solid #2B313A', borderRadius: '8px', color: '#EAECSF', fontSize: '15px', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '11px', color: '#848E9C', display: 'block', marginBottom: '4px' }}>
+                Tasa BCV ⓘ
+              </label>
+              <input
+                type="number"
+                value={bcvRate}
+                onChange={(e) => setBcvRate(e.target.value)}
+                style={{ width: '100%', padding: '10px', backgroundColor: '#0B0E11', border: '1px solid #2B313A', borderRadius: '8px', color: '#EAECSF', fontSize: '15px', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' }}
+              />
+              <span style={{ fontSize: '9px', color: '#848E9C', display: 'block', marginTop: '2px' }}>BCV Oficial</span>
+            </div>
+          </div>
+
+          {/* Selector de Tasa P2P Mercado */}
+          <div style={{ backgroundColor: '#0ECB8110', border: '1px solid #0ECB8130', borderRadius: '8px', padding: '10px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <div>
+                <div style={{ fontSize: '9px', color: '#0ECB81', fontWeight: 'bold' }}>TASA GENERAL DEL MERCADO</div>
+                <div style={{ fontSize: '10px', color: '#848E9C' }}>{bank} / P2P</div>
+              </div>
+              <strong style={{ fontSize: '16px', color: '#0ECB81' }}>{Number(p2pRate).toFixed(2)} Bs</strong>
+            </div>
             <input
               type="number"
               value={p2pRate}
               onChange={(e) => setP2pRate(e.target.value)}
-              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: '#10b981', border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '15px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', padding: '8px', backgroundColor: '#0B0E11', border: '1px solid #2B313A', borderRadius: '6px', color: '#EAECSF', fontSize: '14px', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' }}
             />
+            <span style={{ fontSize: '9px', color: '#848E9C', display: 'block', marginTop: '2px' }}>Editable — puedes escribir tu propia tasa</span>
           </div>
+
+          {/* Botón Principal "Calcular resultado" */}
+          <button
+            onClick={() => setShowResults(true)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#F0B90B',
+              color: '#000000',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(240, 185, 11, 0.2)'
+            }}
+          >
+            Calcular resultado
+          </button>
         </div>
 
-        {/* Comisiones (%) */}
-        <div style={{ backgroundColor: ui.inputBg, padding: '12px', borderRadius: '14px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
-          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '8px', textAlign: 'center', textTransform: 'uppercase' }}>
-            COMISIONES (%)
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
-            <div>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>COMPRA</span>
-              <input
-                type="number"
-                value={commCompra}
-                onChange={(e) => setCommCompra(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
-              />
+        {/* 6. Muestra de Resultados tras presionar el Botón */}
+        {showResults && (
+          <div style={{ backgroundColor: '#181A20', border: '1.5px solid #0ECB81', borderRadius: '12px', padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+              <span style={{ color: '#848E9C' }}>1. Tasa Real con Comisión (+0.5%):</span>
+              <strong style={{ color: '#F0B90B' }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
             </div>
-            <div>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>ENVÍO</span>
-              <input
-                type="number"
-                value={commEnvio}
-                onChange={(e) => setCommEnvio(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
-              />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+              <span style={{ color: '#848E9C' }}>2. Bs Totales a Debitar:</span>
+              <strong style={{ color: '#EAECSF' }}>{bsTotalesDebitar.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
             </div>
-            <div>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>BINANCE</span>
-              <input
-                type="number"
-                value={commBinance}
-                onChange={(e) => setCommBinance(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
-              />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+              <span style={{ color: '#848E9C' }}>3. USD Comprados Intervención:</span>
+              <strong style={{ color: '#0ECB81' }}>${usdComprados.toFixed(2)} USD</strong>
             </div>
-          </div>
-        </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '12px' }}>
+              <span style={{ color: '#848E9C' }}>4. USDT Finales Binance:</span>
+              <strong style={{ color: '#F0B90B' }}>{usdtBinance.toFixed(2)} USDT</strong>
+            </div>
 
-        {/* Desglose de Operación (1 al 5) */}
-        <div style={{ backgroundColor: ui.inputBg, padding: '16px', borderRadius: '16px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>1. Tasa Real con Comisión (+{cCompra}%):</span>
-            <strong style={{ color: activeTheme.accent }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+            <div style={{ backgroundColor: '#0ECB811A', border: '1px solid #0ECB81', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+              <span style={{ fontSize: '10px', color: '#0ECB81', fontWeight: 'bold', display: 'block', textTransform: 'uppercase' }}>GANANCIA ESTIMADA</span>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#0ECB81' }}>
+                {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+              </div>
+              <div style={{ fontSize: '11px', color: '#848E9C' }}>
+                ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>2. Bs Totales a Debitar:</span>
-            <strong>{bsTotalesDebitar.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>3. USD Comprados:</span>
-            <strong style={{ color: activeTheme.accent }}>${usdComprados.toFixed(2)} USD</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>4. USD Envia{bank} (-{cEnvio}%):</span>
-            <strong style={{ color: '#0284c7' }}>${usdEnviados.toFixed(2)} USD</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>5. USDT Binance (-{cBinance}%):</span>
-            <strong style={{ color: '#0284c7' }}>{usdtBinance.toFixed(2)} USDT</strong>
-          </div>
-        </div>
-
-        {/* Tarjeta de Ganancia Estimada */}
-        <div style={{ backgroundColor: isDarkMode ? '#062d1b' : '#ecfdf5', border: '1.5px solid #10b981', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#10b981', display: 'block', letterSpacing: '0.5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-            GANANCIA ESTIMADA
-          </span>
-          <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981', marginBottom: '4px' }}>
-            {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-          </div>
-          <div style={{ fontSize: '13px', fontWeight: '700', color: isDarkMode ? '#a7f3d0' : '#047857' }}>
-            ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
-          </div>
-        </div>
+        )}
 
       </div>
     </div>
