@@ -8,15 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { label: string; logo: string; comms: { label: string; val: string }[] }> = {
-  BDV: { label: 'BDV', logo: 'https://play-lh.googleusercontent.com/1-h51X96b4k7s4k5Z1b6Z5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { label: 'BBVA', logo: 'https://play-lh.googleusercontent.com/9bZ5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { label: 'Mercantil', logo: 'https://play-lh.googleusercontent.com/5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { label: 'Banesco', logo: 'https://play-lh.googleusercontent.com/X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { label: 'BNC', logo: 'https://play-lh.googleusercontent.com/3X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { label: 'Bancamiga', logo: 'https://play-lh.googleusercontent.com/2X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { label: 'Tesoro', logo: 'https://play-lh.googleusercontent.com/4X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { label: 'BDT', logo: 'https://play-lh.googleusercontent.com/6X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; logoBg: string; textColor: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', logoBg: '#002D62', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', logoBg: '#004481', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', logo: 'Image', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', logo: 'Image', textColor: '#00A859', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', logo: 'Image', textColor: '#00539F', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', logo: 'Image', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', logo: 'Image', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', logo: 'Image', textColor: '#E31B23', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -298,11 +298,11 @@ export default function App() {
               const bInfo = bankData[bKey];
               const isSelected = bank === bKey;
               return (
-                <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '65px', padding: '6px 4px', borderRadius: '10px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '900', color: '#000' }}>{bKey.slice(0, 2)}</span>
+                <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '76px', padding: '8px 4px', borderRadius: '12px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.3)', border: '1px solid #E2E8F0', padding: '2px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '900', color: bInfo.textColor === '#FFFFFF' ? '#002D62' : bInfo.textColor, textAlign: 'center', lineHeight: '1' }}>{bKey}</span>
                   </div>
-                  <span>{bInfo.label}</span>
+                  <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bInfo.label}</span>
                 </button>
               );
             })}
