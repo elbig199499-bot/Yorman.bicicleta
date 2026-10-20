@@ -385,43 +385,47 @@ export default function App() {
             </div>
           </div>
         </div>
-
-        <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', marginBottom: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: `0 8px 24px ${accentColor}30`, backdropFilter: 'blur(10px)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>1. Tasa Intervención:</span>
-            <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+            <strong style={{ color: accentColor, fontSize: '13px' }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>2. Subtotal Divisas ($USD):</span>
-            <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <strong style={{ color: ui.textPrimary, fontSize: '13px' }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: accentColor, fontWeight: 'bold' }}>3. Comisión Banco (0.5%):</span>
-            <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <strong style={{ color: accentColor, fontSize: '13px' }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}15`, padding: '6px', borderRadius: '6px' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '13px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '10px', backgroundColor: `${accentColor}20`, padding: '10px', borderRadius: '10px' }}>
             <span style={{ color: accentColor, fontWeight: '900' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
-            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>5. USD Comprados:</span>
-            <strong style={{ color: accentColor }}>${usdAdjudicados.toFixed(2)} USD</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1.5px solid ${ui.border}` }}>
-            <span style={{ color: accentColor, fontWeight: '900' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
-            <strong style={{ color: accentColor, fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>7. USDT Finales Binance (-4.1%):</span>
-            <strong style={{ color: accentColor }}>{usdtP2p.toFixed(2)} USDT</strong>
+            <strong style={{ color: accentColor, fontWeight: '900', fontSize: '15px' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
 
-          <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center', animation: 'pulseGlow 3s infinite ease-in-out' }}>
-            <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
-            <div style={{ fontSize: '22px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>≈ <span style={{ color: '#00FF9D' }}>${gananciaUsd.toFixed(2)}</span> USD (<span style={{ color: '#00FF9D' }}>{gananciaPorcentaje.toFixed(2)}</span>%)</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', padding: '6px 8px', backgroundColor: ui.inputBg, borderRadius: '10px', border: `1px solid ${ui.border}` }}>
+            <span style={{ color: ui.textPrimary, fontWeight: 'bold', fontSize: '12px' }}>5. USD Comprados:</span>
+            <strong style={{ color: '#00FF9D', fontSize: '16px', fontWeight: '900', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '10px 12px', backgroundColor: `${accentColor}15`, borderRadius: '10px', border: `2px solid ${accentColor}` }}>
+            <span style={{ color: accentColor, fontWeight: '900', fontSize: '13px' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
+            <strong style={{ color: '#00FF9D', fontSize: '18px', fontWeight: '900', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>7. USDT Finales Binance (-4.1%):</span>
+            <strong style={{ color: accentColor, fontSize: '13px' }}>{usdtP2p.toFixed(2)} USDT</strong>
+          </div>
+
+          <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '12px', padding: '14px', textAlign: 'center', animation: 'pulseGlow 3s infinite ease-in-out', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
+            <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.8px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: '#00FF9D', margin: '6px 0', textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
+            <div style={{ fontSize: '12px', fontWeight: 'bold', color: ui.textPrimary }}>≈ <span style={{ color: '#00FF9D' }}>${gananciaUsd.toFixed(2)}</span> USD (<span style={{ color: '#00FF9D' }}>{gananciaPorcentaje.toFixed(2)}</span>%)</div>
           </div>
         </div>
+
 
         <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
