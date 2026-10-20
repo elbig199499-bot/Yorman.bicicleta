@@ -1,22 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const colorPalette = [
-  { id: 'dorado', name: 'Dorado', hex: '#FFD700', icon: '🟡', darkBg: '#0F0E0A', darkCard: '#1E1A12', darkBorder: '#4A3E20', darkInput: '#14120D', lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC' },
-  { id: 'esmeralda', name: 'Esmeralda', hex: '#00FF9D', icon: '🟢', darkBg: '#07120D', darkCard: '#12241C', darkBorder: '#1E4D37', darkInput: '#0A1711', lightBg: '#F2FAF6', lightCard: '#FFFFFF', lightBorder: '#C6EEDC', lightInput: '#E8F6EF' },
-  { id: 'cobalto', name: 'Cobalto', hex: '#38BDF8', icon: '🔵', darkBg: '#07101F', darkCard: '#13223E', darkBorder: '#254E7E', darkInput: '#0A172C', lightBg: '#F2F6FD', lightCard: '#FFFFFF', lightBorder: '#C6D8FB', lightInput: '#E8F0FC' },
-  { id: 'morado', name: 'Morado', hex: '#A78BFA', icon: '🟣', darkBg: '#120C22', darkCard: '#20173A', darkBorder: '#4C377A', darkInput: '#17102A', lightBg: '#F7F3FD', lightCard: '#FFFFFF', lightBorder: '#DFCFFC', lightInput: '#F0E8FC' },
-  { id: 'coral', name: 'Coral', hex: '#FB7185', icon: '🔴', darkBg: '#1E0B10', darkCard: '#34141C', darkBorder: '#6B2838', darkInput: '#230E13', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
+  { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡', darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#4A3E20', darkInput: '#13110C', lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC' },
+  { id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢', darkBg: '#09130E', darkCard: '#111F18', darkBorder: '#204E38', darkInput: '#0B150F', lightBg: '#F2FAF6', lightCard: '#FFFFFF', lightBorder: '#C6EEDC', lightInput: '#E8F6EF' },
+  { id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', icon: '🔵', darkBg: '#090F1A', darkCard: '#111A29', darkBorder: '#1E3A6E', darkInput: '#0C111D', lightBg: '#F2F6FD', lightCard: '#FFFFFF', lightBorder: '#C6D8FB', lightInput: '#E8F0FC' },
+  { id: 'morado', name: 'Morado', hex: '#8B5CF6', icon: '🟣', darkBg: '#0E0A18', darkCard: '#181229', darkBorder: '#3E2A6E', darkInput: '#100C1D', lightBg: '#F7F3FD', lightCard: '#FFFFFF', lightBorder: '#DFCFFC', lightInput: '#F0E8FC' },
+  { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
-  BDV: { color: '#FB7185', label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { color: '#38BDF8', label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { color: '#60A5FA', label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { color: '#4ADE80', label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { color: '#34D399', label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { color: '#2DD4BF', label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { color: '#FBBF24', label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { color: '#C084FC', label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; logo: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', logo: 'https://play-lh.googleusercontent.com/1-h51X96b4k7s4k5Z1b6Z5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', logo: 'https://play-lh.googleusercontent.com/9bZ5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', logo: 'https://play-lh.googleusercontent.com/5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', logo: 'https://play-lh.googleusercontent.com/X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', logo: 'https://play-lh.googleusercontent.com/3X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', logo: 'https://play-lh.googleusercontent.com/2X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', logo: 'https://play-lh.googleusercontent.com/4X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', logo: 'https://play-lh.googleusercontent.com/6X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X5=w240-h480-rw', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -242,9 +242,9 @@ export default function App() {
     <div style={{ backgroundColor: ui.bg, color: ui.textPrimary, minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: `${zoomLevel}%`, padding: '12px 8px 30px 8px', transition: 'all 0.3s ease' }}>
       <style>{`
         @keyframes pulseGlow {
-          0% { transform: scale(1); box-shadow: 0 0 0px rgba(0, 255, 157, 0); }
-          50% { transform: scale(1.015); box-shadow: 0 0 18px rgba(0, 255, 157, 0.35); }
-          100% { transform: scale(1); box-shadow: 0 0 0px rgba(0, 255, 157, 0); }
+          0% { transform: scale(1); box-shadow: 0 0 0px ${accentColor}00; }
+          50% { transform: scale(1.015); box-shadow: 0 0 18px ${accentColor}55; }
+          100% { transform: scale(1); box-shadow: 0 0 0px ${accentColor}00; }
         }
         @keyframes spinIcon {
           0% { transform: rotate(0deg); }
@@ -259,7 +259,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '18px' }}>📊</span>
             <span style={{ fontWeight: '900', color: accentColor, fontSize: '15px', letterSpacing: '0.3px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Yorman estadísticas</span>
-            <button className="btn-tap" onClick={() => { playTapSound(isMuted); fetchLiveRates(); }} disabled={isLoading} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, color: isLoading ? ui.textMuted : '#34D399', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+            <button className="btn-tap" onClick={() => { playTapSound(isMuted); fetchLiveRates(); }} disabled={isLoading} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, color: isLoading ? ui.textMuted : accentColor, padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
               <span style={{ display: 'inline-block', animation: isLoading ? 'spinIcon 1s linear infinite' : 'none' }}>🔄</span>
               <span>{isLoading ? '...' : lastSync}</span>
             </button>
@@ -291,15 +291,21 @@ export default function App() {
         <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>BANCO</span>
-            <span style={{ fontSize: '10px', color: '#34D399', backgroundColor: '#34D39920', padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
+            <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}20`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
           </div>
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
-            {Object.keys(bankData).map((bKey) => (
-              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '60px', padding: '8px 4px', borderRadius: '10px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '11px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: bankData[bKey].color }} />
-                <span>{bKey}</span>
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
+            {Object.keys(bankData).map((bKey) => {
+              const bInfo = bankData[bKey];
+              const isSelected = bank === bKey;
+              return (
+                <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '65px', padding: '6px 4px', borderRadius: '10px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '900', color: '#000' }}>{bKey.slice(0, 2)}</span>
+                  </div>
+                  <span>{bInfo.label}</span>
+                </button>
+              );
+            })}
           </div>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <span style={{ backgroundColor: ui.inputBg, color: ui.textPrimary, border: `1px solid ${ui.border}`, padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '900' }}>{bank}</span>
@@ -314,11 +320,11 @@ export default function App() {
         <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>MONEDA DE ENTRADA</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-            <button className="btn-tap" onClick={() => { setCurrencyMode('USDT'); playTapSound(isMuted); }} style={{ padding: '8px 4px', borderRadius: '8px', border: currencyMode === 'USDT' ? '2px solid #34D399' : `1.5px solid ${ui.border}`, backgroundColor: currencyMode === 'USDT' ? '#34D39920' : ui.inputBg, color: currencyMode === 'USDT' ? '#34D399' : ui.textMuted, textAlign: 'left', cursor: 'pointer' }}>
+            <button className="btn-tap" onClick={() => { setCurrencyMode('USDT'); playTapSound(isMuted); }} style={{ padding: '8px 4px', borderRadius: '8px', border: currencyMode === 'USDT' ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: currencyMode === 'USDT' ? `${accentColor}25` : ui.inputBg, color: currencyMode === 'USDT' ? accentColor : ui.textMuted, textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
               <div style={{ fontSize: '8px', opacity: 0.9 }}>USDT a vender</div>
             </button>
-            <button className="btn-tap" onClick={() => { setCurrencyMode('USD'); playTapSound(isMuted); }} style={{ padding: '8px 4px', borderRadius: '8px', border: currencyMode === 'USD' ? '2px solid #38BDF8' : `1.5px solid ${ui.border}`, backgroundColor: currencyMode === 'USD' ? '#38BDF820' : ui.inputBg, color: currencyMode === 'USD' ? '#38BDF8' : ui.textMuted, textAlign: 'left', cursor: 'pointer' }}>
+            <button className="btn-tap" onClick={() => { setCurrencyMode('USD'); playTapSound(isMuted); }} style={{ padding: '8px 4px', borderRadius: '8px', border: currencyMode === 'USD' ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: currencyMode === 'USD' ? `${accentColor}25` : ui.inputBg, color: currencyMode === 'USD' ? accentColor : ui.textMuted, textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
               <div style={{ fontSize: '8px', opacity: 0.9 }}>USD a comprar</div>
             </button>
@@ -347,9 +353,9 @@ export default function App() {
               <div style={{ fontSize: '8px', color: accentColor, fontWeight: '900' }}>BS MÍNIMOS EN BANCO</div>
               <div style={{ fontSize: '12px', fontWeight: '900', color: accentColor }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
             </div>
-            <div style={{ backgroundColor: '#06281D', border: '1.5px solid #34D39960', borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '8px', color: '#34D399', fontWeight: '900' }}>USDT (P2P)</div>
-              <div style={{ fontSize: '12px', fontWeight: '900', color: '#34D399' }}>{usdtP2p.toFixed(2)}</div>
+            <div style={{ backgroundColor: `${accentColor}15`, border: `1.5px solid ${accentColor}60`, borderRadius: '8px', padding: '6px 8px' }}>
+              <div style={{ fontSize: '8px', color: accentColor, fontWeight: '900' }}>USDT (P2P)</div>
+              <div style={{ fontSize: '12px', fontWeight: '900', color: accentColor }}>{usdtP2p.toFixed(2)}</div>
             </div>
           </div>
         </div>
@@ -375,18 +381,18 @@ export default function App() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '8px', color: '#34D399', fontWeight: '900' }}>MERCADO GENERAL</div>
+                <div style={{ fontSize: '8px', color: accentColor, fontWeight: '900' }}>MERCADO GENERAL</div>
                 <div style={{ fontSize: '9px', color: ui.textMuted, fontWeight: 'bold' }}>{bank}, Bank Transfer</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: '#34D399' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: '#34D39930', color: '#34D399', border: '1px solid #34D399', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
+                <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: `${accentColor}30`, color: accentColor, border: `1.5px solid ${accentColor}`, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
               </div>
             </div>
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: '2px solid #34D399', borderRadius: '14px', padding: '14px', marginBottom: '14px', boxShadow: '0 6px 20px rgba(52, 211, 153, 0.2)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', marginBottom: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>1. Tasa Intervención:</span>
             <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
@@ -405,38 +411,38 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>5. USD Comprados:</span>
-            <strong style={{ color: '#38BDF8' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+            <strong style={{ color: accentColor }}>${usdAdjudicados.toFixed(2)} USD</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1.5px solid ${ui.border}` }}>
-            <span style={{ color: '#38BDF8', fontWeight: '900' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
-            <strong style={{ color: '#38BDF8', fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+            <span style={{ color: accentColor, fontWeight: '900' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>7. USDT Finales Binance (-4.1%):</span>
-            <strong style={{ color: '#34D399' }}>{usdtP2p.toFixed(2)} USDT</strong>
+            <strong style={{ color: accentColor }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
 
-          <div style={{ backgroundColor: '#34D39925', border: '1.5px solid #34D399', borderRadius: '10px', padding: '12px', textAlign: 'center', animation: 'pulseGlow 3s infinite ease-in-out' }}>
-            <span style={{ fontSize: '10px', color: '#34D399', fontWeight: '900', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
-            <div style={{ fontSize: '22px', fontWeight: '900', color: '#34D399', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)</div>
+          <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center', animation: 'pulseGlow 3s infinite ease-in-out' }}>
+            <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
+            <div style={{ fontSize: '22px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>≈ <span style={{ color: '#00FF9D' }}>${gananciaUsd.toFixed(2)}</span> USD (<span style={{ color: '#00FF9D' }}>{gananciaPorcentaje.toFixed(2)}</span>%)</div>
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: '2px solid #34D399', borderRadius: '14px', padding: '14px', boxShadow: '0 6px 20px rgba(52, 211, 153, 0.2)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '900', color: '#34D399', display: 'block' }}>🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA</span>
+              <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA</span>
               <span style={{ fontSize: '9px', color: ui.textMuted, fontWeight: 'bold' }}>Reinversión total del capital ganado en cada vuelta</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '4px 8px' }}>
               <span style={{ fontSize: '10px', fontWeight: '900', color: ui.textMuted }}>VUELTAS:</span>
-              <input type="number" min="1" max="50" value={cycles} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setCycles(e.target.value)} style={{ width: '40px', backgroundColor: 'transparent', border: 'none', color: '#34D399', fontSize: '14px', fontWeight: '900', textAlign: 'center', outline: 'none' }} />
+              <input type="number" min="1" max="50" value={cycles} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setCycles(e.target.value)} style={{ width: '40px', backgroundColor: 'transparent', border: 'none', color: accentColor, fontSize: '14px', fontWeight: '900', textAlign: 'center', outline: 'none' }} />
             </div>
           </div>
-          <div style={{ backgroundColor: '#34D39925', border: '1.5px solid #34D399', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <span style={{ fontSize: '10px', color: '#34D399', fontWeight: '900', letterSpacing: '0.5px' }}>{labelUnidad}</span>
-            <div style={{ fontSize: '24px', fontWeight: '900', color: '#34D399', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{formatTotal}</div>
+          <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>{labelUnidad}</span>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{formatTotal}</div>
             <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>{subtextGanancia}</div>
           </div>
         </div>
