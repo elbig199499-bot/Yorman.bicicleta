@@ -30,15 +30,11 @@ export default function App() {
   const [bcvRate, setBcvRate] = useState<number | string>(881.8769);
   const [p2pRate, setP2pRate] = useState<number | string>(1006.55);
 
-  // Recargo de Intervención Bancaria (%)
-  const [spreadIntervencion, setSpreadIntervencion] = useState<number | string>(1.5);
-
   // Comisiones (%)
   const [commCompra, setCommCompra] = useState<number | string>(0.5);
   const [commEnvio, setCommEnvio] = useState<number | string>(2.5);
   const [commBinance, setCommBinance] = useState<number | string>(4.1);
 
-  // Carga y actualización de tasas en tiempo real
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
       .then((res) => res.json())
@@ -70,14 +66,12 @@ export default function App() {
   const baseBcv = Number(bcvRate) || 1;
   const baseP2p = Number(p2pRate) || 1;
 
-  const spread = Number(spreadIntervencion) || 0;
   const cCompra = Number(commCompra) || 0;
   const cEnvio = Number(commEnvio) || 0;
   const cBinance = Number(commBinance) || 0;
 
-  // Tasa de Intervención Ajustada con Recargo del Banco y Comisión
-  const tasaIntervencionAjustada = baseBcv * (1 + spread / 100);
-  const tasaRealCompra = tasaIntervencionAjustada * (1 + cCompra / 100);
+  // Tasa Real únicamente con la comisión de compra (+0.5%)
+  const tasaRealCompra = baseBcv * (1 + cCompra / 100);
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
   let usdComprados = 0;
@@ -235,17 +229,17 @@ export default function App() {
           />
         </div>
 
-        {/* Tasas e Incremento por Intervención */}
+        {/* Tasas de Intervención y P2P */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           <div>
             <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '4px', textAlign: 'center', textTransform: 'uppercase' }}>
-              TASA BASE BCV
+              TASA INTERVENCIÓN (BASE)
             </label>
             <input
               type="number"
               value={bcvRate}
               onChange={(e) => setBcvRate(e.target.value)}
-              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: activeTheme.accent, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '14px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: activeTheme.accent, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '15px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
             />
           </div>
           <div>
@@ -256,61 +250,51 @@ export default function App() {
               type="number"
               value={p2pRate}
               onChange={(e) => setP2pRate(e.target.value)}
-              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: '#10b981', border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '14px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: '#10b981', border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '15px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
             />
           </div>
         </div>
 
-        {/* Recargo por Intervención Bancaria y Comisiones */}
+        {/* Comisiones (%) */}
         <div style={{ backgroundColor: ui.inputBg, padding: '12px', borderRadius: '14px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
-          <div style={{ marginBottom: '8px', textAlign: 'center' }}>
-            <span style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, textTransform: 'uppercase' }}>RECARGO INTERVENCIÓN BANCARIA (%)</span>
-            <input
-              type="number"
-              value={spreadIntervencion}
-              onChange={(e) => setSpreadIntervencion(e.target.value)}
-              style={{ width: '100%', padding: '6px', marginTop: '4px', backgroundColor: ui.cardBg, color: '#ef4444', border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textAlign: 'center', textTransform: 'uppercase' }}>
+          <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '8px', textAlign: 'center', textTransform: 'uppercase' }}>
             COMISIONES (%)
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
             <div>
-              <span style={{ fontSize: '9px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '2px' }}>COMPRA</span>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>COMPRA</span>
               <input
                 type="number"
                 value={commCompra}
                 onChange={(e) => setCommCompra(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '12px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <span style={{ fontSize: '9px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '2px' }}>ENVÍO</span>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>ENVÍO</span>
               <input
                 type="number"
                 value={commEnvio}
                 onChange={(e) => setCommEnvio(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '12px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <span style={{ fontSize: '9px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '2px' }}>BINANCE</span>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: ui.subtext, display: 'block', marginBottom: '4px' }}>BINANCE</span>
               <input
                 type="number"
                 value={commBinance}
                 onChange={(e) => setCommBinance(e.target.value)}
-                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '12px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '6px', backgroundColor: ui.cardBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', fontSize: '13px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }}
               />
             </div>
           </div>
         </div>
 
-        {/* Desglose Completo */}
+        {/* Desglose de Operación (1 al 5) */}
         <div style={{ backgroundColor: ui.inputBg, padding: '16px', borderRadius: '16px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>1. Tasa Intervención Real (+{spread}% +{cCompra}%):</span>
+            <span style={{ color: ui.subtext }}>1. Tasa Real con Comisión (+{cCompra}%):</span>
             <strong style={{ color: activeTheme.accent }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
