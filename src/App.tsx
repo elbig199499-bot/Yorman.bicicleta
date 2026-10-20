@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Galería de 15 temas visuales
+// Galería de 15 temas de color
 const themePalette = [
   { id: 'cobalto', name: 'Azul Cobalto', accent: '#3b82f6', icon: '🔷' },
   { id: 'esmeralda', name: 'Verde Esmeralda', accent: '#10b981', icon: '🟩' },
@@ -28,7 +28,7 @@ export default function App() {
   const [inputCurrency, setInputCurrency] = useState<'BS' | 'USD' | 'USDT'>('USD');
   const [amount, setAmount] = useState<number | string>(200);
 
-  // Tasas
+  // Tasas automáticas y editables
   const [bcvRate, setBcvRate] = useState<number | string>(881.8769);
   const [p2pRate, setP2pRate] = useState<number | string>(1006.55);
 
@@ -37,7 +37,7 @@ export default function App() {
   const [commEnvio, setCommEnvio] = useState<number | string>(2.5);
   const [commBinance, setCommBinance] = useState<number | string>(4.1);
 
-  // Consulta automática de tasas oficiales
+  // Carga automática de tasas oficiales
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
       .then((res) => res.json())
@@ -81,7 +81,7 @@ export default function App() {
   let bsTotalesDebitar = 0;
   let usdtBinance = 0;
 
-  // Lógica según moneda seleccionada
+  // Lógica matemática automática según moneda seleccionada
   if (inputCurrency === 'USD') {
     usdComprados = valAmount;
     bsTotalesDebitar = usdComprados * tasaRealCompra;
@@ -234,7 +234,7 @@ export default function App() {
           />
         </div>
 
-        {/* Tasas Editables */}
+        {/* Tasas Editables y Automáticas */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           <div>
             <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '4px', textAlign: 'center', textTransform: 'uppercase' }}>
@@ -320,7 +320,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Tarjeta de Ganancia Estimada */}
+        {/* Tarjeta de Ganancia Estimada en Tiempo Real */}
         <div style={{ backgroundColor: isDarkMode ? '#062d1b' : '#ecfdf5', border: '1.5px solid #10b981', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#10b981', display: 'block', letterSpacing: '0.5px', marginBottom: '4px', textTransform: 'uppercase' }}>
             GANANCIA ESTIMADA
