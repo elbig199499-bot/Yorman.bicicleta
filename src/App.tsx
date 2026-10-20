@@ -20,19 +20,15 @@ const themePalette = [
 ];
 
 export default function App() {
-  // Estado para el tema de color seleccionado (15 opciones)
   const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
-  // Estado para el modo Claro / Oscuro
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  // Estados de la calculadora
   const [mode, setMode] = useState<'Bs' | 'USD' | 'USDT'>('USD');
   const [amount, setAmount] = useState<number | string>(500);
   const [bcv, setBcv] = useState<number | string>(881.06);
   const [p2p, setP2p] = useState<number | string>(1006.55);
 
   useEffect(() => {
-    // 1. Obtener tasa oficial del BCV 🏦
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
       .then((res) => res.json())
       .then((data) => {
@@ -40,7 +36,6 @@ export default function App() {
       })
       .catch((err) => console.error('Error cargando BCV:', err));
 
-    // 2. Obtener tasa base Binance P2P 🟡
     fetch('https://ve.dolarapi.com/v1/dolares/binance')
       .then((res) => res.json())
       .then((data) => {
@@ -51,7 +46,6 @@ export default function App() {
 
   const activeTheme = themePalette[selectedThemeIndex];
 
-  // Configuración dinámica de colores del Modo Claro / Oscuro
   const ui = {
     bg: isDarkMode ? '#0f172a' : '#f8fafc',
     cardBg: isDarkMode ? '#1e293b' : '#ffffff',
@@ -61,7 +55,6 @@ export default function App() {
     inputBg: isDarkMode ? '#0f172a' : '#f1f5f9',
   };
 
-  // Cálculos de conversión
   const numAmount = Number(amount) || 0;
   const numBcv = Number(bcv) || 1;
   const numP2p = Number(p2p) || 1;
@@ -98,4 +91,98 @@ export default function App() {
 
         {/* Galería de 15 Colores */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ fontSize: '12px', color: ui.subtext, display: 'block', marginBottom: '8
+          <label style={{ fontSize: '12px', color: ui.subtext, display: 'block', marginBottom: '8px' }}>
+            Selecciona uno de los 15 temas de color:
+          </label>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+            {themePalette.map((theme, index) => (
+              <button
+                key={theme.id}
+                onClick={() => setSelectedThemeIndex(index)}
+                style={{
+                  backgroundColor: selectedThemeIndex === index ? theme.accent : ui.inputBg,
+                  color: selectedThemeIndex === index ? '#ffffff' : ui.text,
+                  border: `1px solid ${selectedThemeIndex === index ? theme.accent : ui.border}`,
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>{theme.icon}</span>
+                <span>{theme.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Inputs de Tasas */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <div>
+            <label style={{ fontSize: '12px', color: ui.subtext, display: 'block', marginBottom: '4px' }}>Tasa BCV (Bs)</label>
+            <input
+              type="number"
+              value={bcv}
+              onChange={(e) => setBcv(e.target.value)}
+              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '12px', color: ui.subtext, display: 'block', marginBottom: '4px' }}>Tasa Binance P2P (Bs)</label>
+            <input
+              type="number"
+              value={p2p}
+              onChange={(e) => setP2p(e.target.value)}
+              style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', boxSizing: 'border-box' }}
+            />
+          </div>
+        </div>
+
+        {/* Input de Monto a calcular */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontSize: '12px', color: ui.subtext, display: 'block', marginBottom: '4px' }}>Monto a calcular</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              style={{ flex: 1, padding: '10px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', boxSizing: 'border-box' }}
+            />
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as 'Bs' | 'USD' | 'USDT')}
+              style={{ padding: '10px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '8px', cursor: 'pointer' }}
+            >
+              <option value="Bs">Bs</option>
+              <option value="USD">USD (BCV)</option>
+              <option value="USDT">USDT (Binance)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Panel de Resultados */}
+        <div style={{ backgroundColor: ui.inputBg, padding: '16px', borderRadius: '12px', border: `1px solid ${ui.border}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ color: ui.subtext }}>Bolívares (Bs):</span>
+            <strong style={{ color: activeTheme.accent }}>
+              {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+            </strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ color: ui.subtext }}>Dólares BCV ($):</span>
+            <strong>${totalUSD.toFixed(2)}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: ui.subtext }}>Binance USDT:</span>
+            <strong>{totalUSDT.toFixed(2)} USDT</strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
