@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const colorPalette = [
   { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡', darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#3A3320', darkInput: '#13110C', lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC' },
@@ -8,7 +8,7 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#48202A', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData = {
+const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
   BDV: { color: '#E11D48', label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
   BBVA: { color: '#0284C7', label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
   Mercantil: { color: '#2563EB', label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
@@ -19,10 +19,10 @@ const bankData = {
   BDT: { color: '#7C3AED', label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
-let globalAudioCtx = null;
+let globalAudioCtx: AudioContext | null = null;
 const getAudioContext = () => {
   if (!globalAudioCtx) {
-    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+    const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
     if (AudioCtxClass) globalAudioCtx = new AudioCtxClass();
   }
   if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
@@ -31,7 +31,7 @@ const getAudioContext = () => {
   return globalAudioCtx;
 };
 
-const playTapSound = (muted) => {
+const playTapSound = (muted: boolean) => {
   if (muted) return;
   try {
     const ctx = getAudioContext();
@@ -52,7 +52,7 @@ const playTapSound = (muted) => {
   }
 };
 
-const playChimeSound = (muted) => {
+const playChimeSound = (muted: boolean) => {
   if (muted) return;
   try {
     const ctx = getAudioContext();
@@ -74,23 +74,23 @@ const playChimeSound = (muted) => {
 };
 
 export default function App() {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [activeColorIndex, setActiveColorIndex] = useState(0);
-  const [zoomLevel, setZoomLevel] = useState(() => {
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
-  const [bank, setBank] = useState('BDV');
-  const [currencyMode, setCurrencyMode] = useState('USDT');
-  const [amount, setAmount] = useState('200');
-  const [intervencionRate, setIntervencionRate] = useState('886.29');
-  const [p2pRate, setP2pRate] = useState('1007.00');
-  const [bestRate, setBestRate] = useState('1005.36');
-  const [cycles, setCycles] = useState('3');
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastSync, setLastSync] = useState('En vivo');
+  const [bank, setBank] = useState<string>('BDV');
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
+  const [amount, setAmount] = useState<string>('200');
+  const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
+  const [p2pRate, setP2pRate] = useState<string>('1007.00');
+  const [bestRate, setBestRate] = useState<string>('1005.36');
+  const [cycles, setCycles] = useState<string>('3');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [lastSync, setLastSync] = useState<string>('En vivo');
 
   const theme = colorPalette[activeColorIndex];
   const accentColor = theme.hex;
@@ -104,7 +104,7 @@ export default function App() {
     inputBg: isDarkMode ? theme.darkInput : theme.lightInput,
   };
 
-  const changeZoom = (delta) => {
+  const changeZoom = (delta: number) => {
     playTapSound(isMuted);
     const newZoom = Math.min(Math.max(zoomLevel + delta, 80), 130);
     setZoomLevel(newZoom);
