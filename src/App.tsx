@@ -8,15 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
-  BDV: { color: '#E11D48', label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { color: '#0284C7', label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { color: '#2563EB', label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { color: '#16A34A', label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { color: '#059669', label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { color: '#10B981', label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { color: '#D97706', label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { color: '#7C3AED', label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -293,11 +293,13 @@ export default function App() {
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>BANCO</span>
             <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}20`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
           </div>
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
             {Object.keys(bankData).map((bKey) => (
-              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '60px', padding: '8px 4px', borderRadius: '10px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '11px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: bankData[bKey].color }} />
-                <span>{bKey}</span>
+              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '75px', padding: '8px 4px', borderRadius: '12px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', color: '#000' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}>{bKey}</span>
+                </div>
+                <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bankData[bKey].label}</span>
               </button>
             ))}
           </div>
@@ -380,38 +382,43 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: `${accentColor}30`, color: accentColor, border: `1px solid ${accentColor}`, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
+                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: `${accentColor}30`, color: accentColor, border: `1.5px solid ${accentColor}`, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
               </div>
             </div>
           </div>
         </div>
 
         <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', marginBottom: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>1. Tasa Intervención:</span>
             <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>2. Subtotal Divisas ($USD):</span>
             <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}>
             <span style={{ color: accentColor, fontWeight: 'bold' }}>3. Comisión Banco (0.5%):</span>
             <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}15`, padding: '6px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '13px', borderTop: `1.5px dashed ${ui.border}`, paddingTop: '8px', backgroundColor: `${accentColor}20`, padding: '8px', borderRadius: '8px' }}>
             <span style={{ color: accentColor, fontWeight: '900' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
-            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <strong style={{ color: accentColor, fontWeight: '900', fontSize: '14px' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>5. USD Comprados:</span>
-            <strong style={{ color: accentColor }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          
+          {/* PASO 5: MÁS GRANDE Y RESALTANTE */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '13px', padding: '4px 0' }}>
+            <span style={{ color: ui.textPrimary, fontWeight: 'bold' }}>5. USD Comprados:</span>
+            <strong style={{ color: '#00FF9D', fontSize: '16px', fontWeight: '900', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>${usdAdjudicados.toFixed(2)} USD</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1.5px solid ${ui.border}` }}>
+
+          {/* PASO 6: MÁS GRANDE Y RESALTANTE */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '13px', backgroundColor: ui.inputBg, padding: '8px', borderRadius: '8px', border: `1.5px solid ${accentColor}` }}>
             <span style={{ color: accentColor, fontWeight: '900' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
-            <strong style={{ color: accentColor, fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+            <strong style={{ color: '#00FF9D', fontSize: '16px', fontWeight: '900', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '12px' }}>
             <span style={{ color: ui.textMuted, fontWeight: 'bold' }}>7. USDT Finales Binance (-4.1%):</span>
             <strong style={{ color: accentColor }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
@@ -437,7 +444,7 @@ export default function App() {
           <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
             <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>{labelUnidad}</span>
             <div style={{ fontSize: '24px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{formatTotal}</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>{subtextGanancia}</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary}>{subtextGanancia}</div>
           </div>
         </div>
       </div>
