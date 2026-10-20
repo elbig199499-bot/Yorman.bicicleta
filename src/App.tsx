@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 
-// Galería de 15 temas de color
 const themePalette = [
   { id: 'cobalto', name: 'Azul Cobalto', accent: '#3b82f6', icon: '🔷' },
   { id: 'esmeralda', name: 'Verde Esmeralda', accent: '#10b981', icon: '🟩' },
@@ -23,21 +22,20 @@ export default function App() {
   const [selectedThemeIndex, setSelectedThemeIndex] = useState<number>(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
-  // Selección de Banco y Moneda de Entrada
+  // Configuración de Banco y Moneda
   const [bank, setBank] = useState<string>('BDV');
   const [inputCurrency, setInputCurrency] = useState<'BS' | 'USD' | 'USDT'>('USD');
   const [amount, setAmount] = useState<number | string>(200);
 
-  // Tasa de Intervención Cambiaria oficial BCV
+  // Tasa de Intervención Cambiaria Oficial BCV
   const [intervencionRate, setIntervencionRate] = useState<number | string>(885.47);
   const [p2pRate, setP2pRate] = useState<number | string>(1006.55);
 
-  // Comisiones (%)
-  const [commCompra, setCommCompra] = useState<number | string>(0.5);
+  // Comisiones (%) - Compra por defecto en 0 para no alterar la tasa ingresada
+  const [commCompra, setCommCompra] = useState<number | string>(0);
   const [commEnvio, setCommEnvio] = useState<number | string>(2.5);
   const [commBinance, setCommBinance] = useState<number | string>(4.1);
 
-  // Carga automática de la Tasa de Intervención y P2P
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/intervencion')
       .then((res) => res.json())
@@ -45,7 +43,6 @@ export default function App() {
         if (data && data.promedio) setIntervencionRate(data.promedio);
       })
       .catch(() => {
-        // Fallback a oficial si no existe endpoint específico
         fetch('https://ve.dolarapi.com/v1/dolares/oficial')
           .then((res) => res.json())
           .then((data) => {
@@ -83,7 +80,7 @@ export default function App() {
   const cEnvio = Number(commEnvio) || 0;
   const cBinance = Number(commBinance) || 0;
 
-  // Tasa Real con Comisión de Compra de Intervención (+0.5%)
+  // Tasa de Compra exacta
   const tasaRealCompra = baseIntervencion * (1 + cCompra / 100);
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
@@ -91,7 +88,6 @@ export default function App() {
   let bsTotalesDebitar = 0;
   let usdtBinance = 0;
 
-  // Lógica matemática automática según la moneda seleccionada
   if (inputCurrency === 'USD') {
     usdComprados = valAmount;
     bsTotalesDebitar = usdComprados * tasaRealCompra;
@@ -130,7 +126,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Selector de Tema */}
+        {/* Tema */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
             TEMA DE LA APP (15 COLORES)
@@ -148,7 +144,7 @@ export default function App() {
           </select>
         </div>
 
-        {/* Selector de Banco */}
+        {/* Selección de Banco */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
             SELECCIONA TU BANCO
@@ -306,10 +302,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* Desglose Pasos 1 al 5 */}
+        {/* Desglose de Operación */}
         <div style={{ backgroundColor: ui.inputBg, padding: '16px', borderRadius: '16px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>1. Tasa Real Intervención (+{cCompra}%):</span>
+            <span style={{ color: ui.subtext }}>1. Tasa Intervención:</span>
             <strong style={{ color: activeTheme.accent }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
