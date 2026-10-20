@@ -1,6 +1,53 @@
 import { useState, useEffect } from 'react';
 
+// 🎨 Definición de temas de colores
+const themes = {
+  default: {
+    name: '🌌 Azul Noche',
+    bg: '#0f172a',
+    card: '#1e293b',
+    text: '#f8fafc',
+    subtext: '#94a3b8',
+    accent: '#f59e0b',
+    border: '#334155',
+    inputBg: '#0f172a',
+  },
+  neon: {
+    name: '🖤 Neón',
+    bg: '#000000',
+    card: '#111827',
+    text: '#ffffff',
+    subtext: '#9ca3af',
+    accent: '#10b981',
+    border: '#374151',
+    inputBg: '#1f2937',
+  },
+  gold: {
+    name: '🌟 Dorado',
+    bg: '#121212',
+    card: '#1e1e1e',
+    text: '#f3f4f6',
+    subtext: '#9ca3af',
+    accent: '#eab308',
+    border: '#2f2f2f',
+    inputBg: '#121212',
+  },
+  executive: {
+    name: '💼 Azul Claro',
+    bg: '#1e293b',
+    card: '#334155',
+    text: '#ffffff',
+    subtext: '#cbd5e1',
+    accent: '#38bdf8',
+    border: '#475569',
+    inputBg: '#1e293b',
+  },
+};
+
 export default function App() {
+  const [currentTheme, setCurrentTheme] = useState<keyof typeof themes>('default');
+  const t = themes[currentTheme];
+
   const [mode, setMode] = useState<'Bs' | 'USD' | 'USDT'>('USD');
   const [bank, setBank] = useState('BDV');
   const [amount, setAmount] = useState<number | string>(500);
@@ -49,7 +96,7 @@ export default function App() {
 
   const num = (v: number | string) => (typeof v === 'number' ? v : parseFloat(v) || 0);
   
-  // 🧮 Tasa efectiva sumando el 0.5% de comisión sobre la tasa base
+  // 🧮 Tasa efectiva sumando la comisión de compra (0.5%)
   const effBcv = num(bcv) * (1 + num(buyFee) / 100);
 
   let bsSpent = 0;
@@ -76,15 +123,43 @@ export default function App() {
   const margin = bsSpent > 0 ? (netProfitBs / bsSpent) * 100 : 0;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', padding: '1rem', fontFamily: 'sans-serif' }}>
-      <div style={{ maxWidth: '480px', margin: '0 auto', backgroundColor: '#1e293b', borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: t.bg, color: t.text, padding: '1rem', fontFamily: 'sans-serif', transition: 'all 0.3s' }}>
+      <div style={{ maxWidth: '480px', margin: '0 auto', backgroundColor: t.card, borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }}>
         
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '1rem', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '1rem', color: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
           🚲 Bicicleta Intervención ➔ Binance P2P
         </h1>
 
+        {/* 🎨 Selector de temas en pantalla */}
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
+          <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 'bold', color: t.subtext, textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.35rem' }}>
+            TEMA DE LA APP
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.35rem' }}>
+            {(Object.keys(themes) as Array<keyof typeof themes>).map((key) => (
+              <button
+                key={key}
+                onClick={() => setCurrentTheme(key)}
+                style={{
+                  padding: '0.35rem 0.2rem',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.65rem',
+                  fontWeight: 'bold',
+                  border: currentTheme === key ? `2px solid ${t.accent}` : `1px solid ${t.border}`,
+                  backgroundColor: currentTheme === key ? t.card : t.inputBg,
+                  color: currentTheme === key ? t.accent : t.subtext,
+                  cursor: 'pointer'
+                }}
+              >
+                {themes[key].name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Selección de Banco */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: t.subtext, textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
             SELECCIONA TU BANCO
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
@@ -97,9 +172,9 @@ export default function App() {
                   borderRadius: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: 'bold',
-                  border: bank === b ? '2px solid #f59e0b' : '1px solid #334155',
-                  backgroundColor: bank === b ? '#1e293b' : '#0f172a',
-                  color: bank === b ? '#f59e0b' : '#94a3b8',
+                  border: bank === b ? `2px solid ${t.accent}` : `1px solid ${t.border}`,
+                  backgroundColor: bank === b ? t.card : t.inputBg,
+                  color: bank === b ? t.accent : t.subtext,
                   cursor: 'pointer'
                 }}
               >
@@ -109,8 +184,9 @@ export default function App() {
           </div>
         </div>
 
+        {/* Moneda de Entrada */}
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: t.subtext, textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
             MONEDA DE ENTRADA
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
@@ -127,9 +203,9 @@ export default function App() {
                   borderRadius: '0.5rem',
                   fontSize: '0.75rem',
                   fontWeight: 'bold',
-                  border: mode === m.id ? '2px solid #f59e0b' : '1px solid #334155',
-                  backgroundColor: mode === m.id ? '#1e293b' : '#0f172a',
-                  color: mode === m.id ? '#f59e0b' : '#94a3b8',
+                  border: mode === m.id ? `2px solid ${t.accent}` : `1px solid ${t.border}`,
+                  backgroundColor: mode === m.id ? t.card : t.inputBg,
+                  color: mode === m.id ? t.accent : t.subtext,
                   cursor: 'pointer'
                 }}
               >
@@ -139,8 +215,9 @@ export default function App() {
           </div>
         </div>
 
+        {/* Cantidad */}
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: t.subtext, textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
             CANTIDAD DE {mode === 'Bs' ? 'BS A INVERTIR' : mode === 'USD' ? 'USD A COMPRAR' : 'USDT A RECIBIR'}
           </label>
           <input
@@ -151,9 +228,9 @@ export default function App() {
               width: '100%',
               padding: '0.75rem',
               borderRadius: '0.5rem',
-              backgroundColor: '#0f172a',
-              border: '1px solid #334155',
-              color: '#ffffff',
+              backgroundColor: t.inputBg,
+              border: `1px solid ${t.border}`,
+              color: t.text,
               fontSize: '1.25rem',
               fontWeight: 'bold',
               boxSizing: 'border-box'
@@ -161,9 +238,10 @@ export default function App() {
           />
         </div>
 
+        {/* Tasas */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', marginBottom: '0.25rem' }}>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: t.subtext, textAlign: 'center', marginBottom: '0.25rem' }}>
               TASA INTERVENCIÓN (BASE)
             </label>
             <input
@@ -174,9 +252,9 @@ export default function App() {
                 width: '100%',
                 padding: '0.5rem',
                 borderRadius: '0.5rem',
-                backgroundColor: '#0f172a',
-                border: '1px solid #334155',
-                color: '#f59e0b',
+                backgroundColor: t.inputBg,
+                border: `1px solid ${t.border}`,
+                color: t.accent,
                 fontSize: '1.125rem',
                 fontWeight: 'bold',
                 textAlign: 'center',
@@ -185,7 +263,7 @@ export default function App() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', marginBottom: '0.25rem' }}>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: t.subtext, textAlign: 'center', marginBottom: '0.25rem' }}>
               VENTA P2P ({bank})
             </label>
             <input
@@ -196,8 +274,8 @@ export default function App() {
                 width: '100%',
                 padding: '0.5rem',
                 borderRadius: '0.5rem',
-                backgroundColor: '#0f172a',
-                border: '1px solid #334155',
+                backgroundColor: t.inputBg,
+                border: `1px solid ${t.border}`,
                 color: '#10b981',
                 fontSize: '1.125rem',
                 fontWeight: 'bold',
@@ -208,64 +286,67 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#0f172a', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #334155' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
+        {/* Comisiones */}
+        <div style={{ backgroundColor: t.inputBg, padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', border: `1px solid ${t.border}` }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: t.subtext, textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
             COMISIONES (%)
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', textAlign: 'center' }}>
             <div>
-              <span style={{ fontSize: '0.65rem', color: '#64748b', display: 'block' }}>COMPRA</span>
+              <span style={{ fontSize: '0.65rem', color: t.subtext, display: 'block' }}>COMPRA</span>
               <input
                 type="number"
                 value={buyFee}
                 onChange={(e) => setBuyFee(e.target.value)}
-                style={{ width: '100%', padding: '0.25rem', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', borderRadius: '0.25rem', textAlign: 'center' }}
+                style={{ width: '100%', padding: '0.25rem', backgroundColor: t.card, border: `1px solid ${t.border}`, color: t.text, borderRadius: '0.25rem', textAlign: 'center' }}
               />
             </div>
             <div>
-              <span style={{ fontSize: '0.65rem', color: '#64748b', display: 'block' }}>ENVÍO</span>
+              <span style={{ fontSize: '0.65rem', color: t.subtext, display: 'block' }}>ENVÍO</span>
               <input
                 type="number"
                 value={sendFee}
                 onChange={(e) => setSendFee(e.target.value)}
-                style={{ width: '100%', padding: '0.25rem', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', borderRadius: '0.25rem', textAlign: 'center' }}
+                style={{ width: '100%', padding: '0.25rem', backgroundColor: t.card, border: `1px solid ${t.border}`, color: t.text, borderRadius: '0.25rem', textAlign: 'center' }}
               />
             </div>
             <div>
-              <span style={{ fontSize: '0.65rem', color: '#64748b', display: 'block' }}>BINANCE</span>
+              <span style={{ fontSize: '0.65rem', color: t.subtext, display: 'block' }}>BINANCE</span>
               <input
                 type="number"
                 value={binFee}
                 onChange={(e) => setBinFee(e.target.value)}
-                style={{ width: '100%', padding: '0.25rem', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', borderRadius: '0.25rem', textAlign: 'center' }}
+                style={{ width: '100%', padding: '0.25rem', backgroundColor: t.card, border: `1px solid ${t.border}`, color: t.text, borderRadius: '0.25rem', textAlign: 'center' }}
               />
             </div>
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#0f172a', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #334155', fontSize: '0.875rem' }}>
+        {/* Resultados */}
+        <div style={{ backgroundColor: t.inputBg, padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', border: `1px solid ${t.border}`, fontSize: '0.875rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>1. Tasa Real con Comisión (+{buyFee}%):</span>
-            <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>{effBcv.toFixed(4)} Bs/USD</span>
+            <span style={{ color: t.subtext }}>1. Tasa Real con Comisión (+{buyFee}%):</span>
+            <span style={{ fontWeight: 'bold', color: t.accent }}>{effBcv.toFixed(4)} Bs/USD</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>2. Bs Totales a Debitar:</span>
+            <span style={{ color: t.subtext }}>2. Bs Totales a Debitar:</span>
             <span style={{ fontWeight: 'bold' }}>{bsSpent.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>3. USD Comprados:</span>
-            <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>${usdBought.toFixed(2)} USD</span>
+            <span style={{ color: t.subtext }}>3. USD Comprados:</span>
+            <span style={{ fontWeight: 'bold', color: t.accent }}>${usdBought.toFixed(2)} USD</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>4. USD EnviaBDV (-{sendFee}%):</span>
+            <span style={{ color: t.subtext }}>4. USD EnviaBDV (-{sendFee}%):</span>
             <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>${usdAfterBankFee.toFixed(2)} USD</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>5. USDT Binance (-{binFee}%):</span>
+            <span style={{ color: t.subtext }}>5. USDT Binance (-{binFee}%):</span>
             <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>{finalUsdt.toFixed(2)} USDT</span>
           </div>
         </div>
 
+        {/* Ganancia/Pérdida */}
         <div style={{ backgroundColor: netProfitBs >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${netProfitBs >= 0 ? '#10b981' : '#ef4444'}`, padding: '1rem', borderRadius: '0.5rem', textAlign: 'center' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: netProfitBs >= 0 ? '#10b981' : '#ef4444', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
             {netProfitBs >= 0 ? 'GANANCIA ESTIMADA' : 'PÉRDIDA ESTIMADA'}
