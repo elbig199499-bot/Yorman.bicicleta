@@ -8,29 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { label: string; brandColor: string; textColor: string; hasLogo?: boolean; logoSvg?: string; comms: { label: string; val: string }[] }> = {
-  BDV: { 
-    label: 'BDV', 
-    brandColor: '#002855', 
-    textColor: '#FFFFFF', 
-    hasLogo: true,
-    logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] 
-  },
-  BBVA: { label: 'BBVA', brandColor: '#004481', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { label: 'Mercantil', brandColor: '#00539F', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { 
-    label: 'Banesco', 
-    brandColor: '#00A859', 
-    textColor: '#FFFFFF', 
-    hasLogo: true,
-    logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg>',
-    comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] 
-  },
-  BNC: { label: 'BNC', brandColor: '#002D62', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { label: 'Bancamiga', brandColor: '#00A3E0', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { label: 'Tesoro', brandColor: '#003366', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { label: 'BDT', brandColor: '#E31B23', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; brandColor: string; textColor: string; iconSymbol: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', brandColor: '#002855', textColor: '#FFFFFF', iconSymbol: '🏛️', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', brandColor: '#004481', textColor: '#00D0FF', iconSymbol: '🌐', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', brandColor: '#00539F', textColor: '#FF6600', iconSymbol: '🔶', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', brandColor: '#00A859', textColor: '#FFFFFF', iconSymbol: '🟢', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', brandColor: '#002D62', textColor: '#00A3E0', iconSymbol: '⭐', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', brandColor: '#00A3E0', textColor: '#FFFFFF', iconSymbol: '🚀', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', brandColor: '#003366', textColor: '#FFCC00', iconSymbol: '💰', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', brandColor: '#E31B23', textColor: '#FFFFFF', iconSymbol: '🛡️', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -300,7 +286,7 @@ export default function App() {
 
         <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>BANCO CON LOGOS VECTORIALES (PRUEBA)</span>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>BANCO (CON EMBLEMAS)</span>
             <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}20`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
@@ -309,12 +295,8 @@ export default function App() {
               const isSelected = bank === bKey;
               return (
                 <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '75px', padding: '8px 4px', borderRadius: '12px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: bInfo.brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', color: bInfo.textColor }}>
-                    {bInfo.hasLogo && bInfo.logoSvg ? (
-                      <span dangerouslySetInnerHTML={{ __html: bInfo.logoSvg }} />
-                    ) : (
-                      <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}>{bKey}</span>
-                    )}
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: bInfo.brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', color: bInfo.textColor, fontSize: '16px' }}>
+                    {bInfo.iconSymbol}
                   </div>
                   <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bInfo.label}</span>
                 </button>
