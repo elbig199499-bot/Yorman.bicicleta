@@ -4,12 +4,11 @@ export default function App() {
   const [mode, setMode] = useState<'Bs' | 'USD' | 'USDT'>('USD');
   const [bank, setBank] = useState('BDV');
   const [amount, setAmount] = useState<number | string>(500);
-  const [bcv, setBcv] = useState<number | string>(885.47);
+  const [bcv, setBcv] = useState<number | string>(881.06);
   const [p2p, setP2p] = useState<number | string>(1006.55);
 
-  // 🔄 Carga automática de tasas desde internet al abrir la app
   useEffect(() => {
-    // 1. Obtener tasa oficial del BCV 🏦
+    // 1. Obtener tasa oficial base del BCV 🏦
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
       .then((res) => res.json())
       .then((data) => {
@@ -19,7 +18,7 @@ export default function App() {
       })
       .catch((err) => console.error('Error cargando BCV:', err));
 
-    // 2. Obtener tasa Binance P2P 🟡
+    // 2. Obtener tasa base Binance P2P 🟡
     fetch('https://ve.dolarapi.com/v1/dolares/binance')
       .then((res) => res.json())
       .then((data) => {
@@ -49,6 +48,8 @@ export default function App() {
   };
 
   const num = (v: number | string) => (typeof v === 'number' ? v : parseFloat(v) || 0);
+  
+  // 🧮 Tasa efectiva sumando el 0.5% de comisión sobre la tasa base
   const effBcv = num(bcv) * (1 + num(buyFee) / 100);
 
   let bsSpent = 0;
@@ -163,7 +164,7 @@ export default function App() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', marginBottom: '0.25rem' }}>
-              INTERVENCIÓN / BCV (REAL: {(num(bcv) * (1 + num(buyFee) / 100)).toFixed(2)})
+              TASA INTERVENCIÓN (BASE)
             </label>
             <input
               type="number"
@@ -244,19 +245,23 @@ export default function App() {
 
         <div style={{ backgroundColor: '#0f172a', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #334155', fontSize: '0.875rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>1. Bs Requeridos:</span>
+            <span style={{ color: '#94a3b8' }}>1. Tasa Real con Comisión (+{buyFee}%):</span>
+            <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>{effBcv.toFixed(4)} Bs/USD</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+            <span style={{ color: '#94a3b8' }}>2. Bs Totales a Debitar:</span>
             <span style={{ fontWeight: 'bold' }}>{bsSpent.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>2. USD Comprados:</span>
+            <span style={{ color: '#94a3b8' }}>3. USD Comprados:</span>
             <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>${usdBought.toFixed(2)} USD</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-            <span style={{ color: '#94a3b8' }}>3. USD EnviaBDV (-{sendFee}%):</span>
+            <span style={{ color: '#94a3b8' }}>4. USD EnviaBDV (-{sendFee}%):</span>
             <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>${usdAfterBankFee.toFixed(2)} USD</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>4. USDT Binance (-{binFee}%):</span>
+            <span style={{ color: '#94a3b8' }}>5. USDT Binance (-{binFee}%):</span>
             <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>{finalUsdt.toFixed(2)} USDT</span>
           </div>
         </div>
