@@ -1,22 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const colorPalette = [
-  { id: 'dorado', name: 'Dorado', hex: '#D97706', lightHex: '#B45309', icon: '🟡', darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#4A3E20', darkInput: '#13110C', lightBg: '#FFFBEB', lightCard: '#FFFFFF', lightBorder: '#FDE68A', lightInput: '#FEF3C7' },
-  { id: 'esmeralda', name: 'Esmeralda', hex: '#059669', lightHex: '#047857', icon: '🟢', darkBg: '#09130E', darkCard: '#111F18', darkBorder: '#204E38', darkInput: '#0B150F', lightBg: '#ECFDF5', lightCard: '#FFFFFF', lightBorder: '#A7F3D0', lightInput: '#D1FAE5' },
-  { id: 'cobalto', name: 'Cobalto', hex: '#2563EB', lightHex: '#1D4ED8', icon: '🔵', darkBg: '#090F1A', darkCard: '#111A29', darkBorder: '#2563EB', darkInput: '#0C111D', lightBg: '#EFF6FF', lightCard: '#FFFFFF', lightBorder: '#BFDBFE', lightInput: '#DBEAFE' },
-  { id: 'morado', name: 'Morado', hex: '#7C3AED', lightHex: '#6D28D9', icon: '🟣', darkBg: '#0E0A18', darkCard: '#181229', darkBorder: '#5B21B6', darkInput: '#100C1D', lightBg: '#F5F3FF', lightCard: '#FFFFFF', lightBorder: '#DDD6FE', lightInput: '#EDE9FE' },
-  { id: 'coral', name: 'Coral', hex: '#E11D48', lightHex: '#BE123C', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#9F1239', darkInput: '#190A0D', lightBg: '#FFF1F2', lightCard: '#FFFFFF', lightBorder: '#FECDD3', lightInput: '#FFE4E6' },
+  { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡', darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#4A3E20', darkInput: '#13110C', lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC' },
+  { id: 'esmeralda', name: 'Esmeralda', hex: '#10B981', icon: '🟢', darkBg: '#09130E', darkCard: '#111F18', darkBorder: '#204E38', darkInput: '#0B150F', lightBg: '#F2FAF6', lightCard: '#FFFFFF', lightBorder: '#C6EEDC', lightInput: '#E8F6EF' },
+  { id: 'cobalto', name: 'Cobalto', hex: '#3B82F6', icon: '🔵', darkBg: '#090F1A', darkCard: '#111A29', darkBorder: '#1E3A6E', darkInput: '#0C111D', lightBg: '#F2F6FD', lightCard: '#FFFFFF', lightBorder: '#C6D8FB', lightInput: '#E8F0FC' },
+  { id: 'morado', name: 'Morado', hex: '#8B5CF6', icon: '🟣', darkBg: '#0E0A18', darkCard: '#181229', darkBorder: '#3E2A6E', darkInput: '#100C1D', lightBg: '#F7F3FD', lightCard: '#FFFFFF', lightBorder: '#DFCFFC', lightInput: '#F0E8FC' },
+  { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
-  BDV: { color: '#E11D48', label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { color: '#0284C7', label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { color: '#2563EB', label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { color: '#16A34A', label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { color: '#059669', label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { color: '#10B981', label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { color: '#D97706', label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { color: '#7C3AED', label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -90,17 +90,17 @@ export default function App() {
   const [bestRate, setBestRate] = useState<string>('1005.36');
   const [cycles, setCycles] = useState<string>('3');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastSync, setLastSync] = useState<string>('16:30');
+  const [lastSync, setLastSync] = useState<string>('14:14');
 
   const theme = colorPalette[activeColorIndex];
-  const accentColor = isDarkMode ? theme.hex : theme.lightHex;
+  const accentColor = theme.hex;
 
   const ui = {
     bg: isDarkMode ? theme.darkBg : theme.lightBg,
     cardBg: isDarkMode ? theme.darkCard : theme.lightCard,
     border: isDarkMode ? theme.darkBorder : theme.lightBorder,
-    textPrimary: isDarkMode ? '#FFFFFF' : '#1E293B',
-    textMuted: isDarkMode ? '#CBD5E1' : '#475569',
+    textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
+    textMuted: isDarkMode ? '#CBD5E1' : '#64748B',
     inputBg: isDarkMode ? theme.darkInput : theme.lightInput,
   };
 
@@ -150,10 +150,6 @@ export default function App() {
     setIsLoading(false);
     playChimeSound(isMuted);
   }, [isMuted]);
-
-  useEffect(() => {
-    fetchLiveRates();
-  }, [bank, fetchLiveRates]);
 
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
@@ -246,47 +242,41 @@ export default function App() {
           50% { transform: scale(1.015); box-shadow: 0 0 18px ${accentColor}55; }
           100% { transform: scale(1); box-shadow: 0 0 0px ${accentColor}00; }
         }
-        @keyframes titleGlow {
-          0% { text-shadow: 0 0 2px ${accentColor}40; transform: scale(1); }
-          50% { text-shadow: 0 0 14px ${accentColor}, 0 0 22px ${accentColor}; transform: scale(1.02); }
-          100% { text-shadow: 0 0 2px ${accentColor}40; transform: scale(1); }
-        }
         @keyframes spinIcon {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
         .btn-tap { transition: transform 0.1s ease, filter 0.1s ease; }
         .btn-tap:active { transform: scale(0.94) !important; filter: brightness(1.3); }
-        .glowing-title { animation: titleGlow 2.5s infinite ease-in-out; display: inline-block; }
       `}</style>
 
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '6px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '18px' }}>📊</span>
-            <span className="glowing-title" style={{ fontWeight: '900', color: accentColor, fontSize: '15px', letterSpacing: '0.4px' }}>Yorman estadísticas</span>
-            <button className="btn-tap" onClick={() => { playTapSound(isMuted); fetchLiveRates(); }} disabled={isLoading} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${accentColor}`, color: isLoading ? ui.textMuted : accentColor, padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <span style={{ fontWeight: '900', color: accentColor, fontSize: '15px', letterSpacing: '0.3px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Yorman estadísticas</span>
+            <button className="btn-tap" onClick={() => { playTapSound(isMuted); fetchLiveRates(); }} disabled={isLoading} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, color: isLoading ? ui.textMuted : accentColor, padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
               <span style={{ display: 'inline-block', animation: isLoading ? 'spinIcon 1s linear infinite' : 'none' }}>🔄</span>
               <span>{isLoading ? '...' : lastSync}</span>
             </button>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button className="btn-tap" onClick={() => { const newMute = !isMuted; setIsMuted(newMute); if (!newMute) playTapSound(false); }} title={isMuted ? 'Activar sonido' : 'Silenciar sonido'} style={{ backgroundColor: isMuted ? `${accentColor}30` : ui.cardBg, border: `1.5px solid ${isMuted ? accentColor : ui.border}`, color: ui.textPrimary, padding: '4px 7px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <button className="btn-tap" onClick={() => { const newMute = !isMuted; setIsMuted(newMute); if (!newMute) playTapSound(false); }} title={isMuted ? 'Activar sonido' : 'Silenciar sonido'} style={{ backgroundColor: isMuted ? `${accentColor}30` : ui.cardBg, border: `1.5px solid ${isMuted ? accentColor : ui.border}`, color: ui.textPrimary, padding: '4px 7px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
               {isMuted ? '🔇' : '🔊'}
             </button>
 
-            <select value={activeColorIndex} onChange={(e) => { setActiveColorIndex(Number(e.target.value)); playTapSound(isMuted); }} style={{ backgroundColor: ui.cardBg, color: accentColor, border: `1.5px solid ${accentColor}`, borderRadius: '8px', padding: '4px 6px', fontSize: '11px', fontWeight: 'bold', outline: 'none', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <select value={activeColorIndex} onChange={(e) => { setActiveColorIndex(Number(e.target.value)); playTapSound(isMuted); }} style={{ backgroundColor: ui.cardBg, color: accentColor, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '4px 6px', fontSize: '11px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}>
               {colorPalette.map((c, idx) => (
                 <option key={c.id} value={idx} style={{ backgroundColor: ui.cardBg, color: ui.textPrimary }}>{c.icon} {c.name}</option>
               ))}
             </select>
 
-            <button className="btn-tap" onClick={() => { setIsDarkMode(!isDarkMode); playTapSound(isMuted); }} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, color: ui.textPrimary, padding: '4px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <button className="btn-tap" onClick={() => { setIsDarkMode(!isDarkMode); playTapSound(isMuted); }} style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, color: ui.textPrimary, padding: '4px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>
               {isDarkMode ? '☀️' : '🌙'}
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '2px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '2px' }}>
               <button className="btn-tap" onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
               <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 1px', fontWeight: 'bold' }}>{zoomLevel}%</span>
               <button className="btn-tap" onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
@@ -294,16 +284,18 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${accentColor}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>BANCO</span>
-            <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}25`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
+            <span style={{ fontSize: '10px', color: accentColor, backgroundColor: `${accentColor}20`, padding: '2px 8px', borderRadius: '10px', fontWeight: '900' }}>ACTIVO</span>
           </div>
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '8px' }}>
             {Object.keys(bankData).map((bKey) => (
-              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '60px', padding: '8px 4px', borderRadius: '10px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '11px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: bankData[bKey].color }} />
-                <span>{bKey}</span>
+              <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '75px', padding: '8px 4px', borderRadius: '12px', border: bank === bKey ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: bank === bKey ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 6px rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.3)', color: '#000' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}>{bKey}</span>
+                </div>
+                <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bankData[bKey].label}</span>
               </button>
             ))}
           </div>
@@ -317,7 +309,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>MONEDA DE ENTRADA</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             <button className="btn-tap" onClick={() => { setCurrencyMode('USDT'); playTapSound(isMuted); }} style={{ padding: '8px 4px', borderRadius: '8px', border: currencyMode === 'USDT' ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: currencyMode === 'USDT' ? `${accentColor}25` : ui.inputBg, color: currencyMode === 'USDT' ? accentColor : ui.textMuted, textAlign: 'left', cursor: 'pointer' }}>
@@ -335,17 +327,17 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>DATOS DE OPERACIÓN</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: 'bold' }}>INTERVENCIÓN</span>
-              <input type="number" step="any" value={intervencionRate} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setIntervencionRate(e.target.value)} style={{ width: '85px', backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '6px', color: accentColor, fontSize: '11px', fontWeight: 'bold', textAlign: 'center', padding: '3px', outline: 'none' }} />
+              <input type="number" step="any" value={intervencionRate} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setIntervencionRate(e.target.value)} style={{ width: '85px', backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '6px', color: accentColor, fontSize: '11px', fontWeight: 'bold', textAlign: 'center', padding: '3px', outline: 'none' }} />
               <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: 'bold' }}>Bs</span>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1fr', gap: '6px', alignItems: 'center' }}>
-            <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ fontSize: '11px' }}>{currencyMode === 'USD' ? '💵' : currencyMode === 'USDT' ? '₮' : '🇻🇪'}</span>
               <input type="number" step="any" value={amount} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setAmount(e.target.value)} style={{ width: '100%', background: 'none', border: 'none', color: ui.textPrimary, fontSize: '15px', fontWeight: '900', outline: 'none' }} />
             </div>
@@ -360,12 +352,12 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '14px', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}>
+        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>TASA P2P</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{bank}</span>
-              <input type="number" step="any" value={p2pRate} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setP2pRate(e.target.value)} style={{ width: '80px', backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '6px', color: ui.textPrimary, fontSize: '12px', fontWeight: 'bold', textAlign: 'center', padding: '3px', outline: 'none' }} />
+              <input type="number" step="any" value={p2pRate} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setP2pRate(e.target.value)} style={{ width: '80px', backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '6px', color: ui.textPrimary, fontSize: '12px', fontWeight: 'bold', textAlign: 'center', padding: '3px', outline: 'none' }} />
             </div>
           </div>
           <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '8px' }}>
@@ -376,7 +368,7 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button className="btn-tap" onClick={() => { setP2pRate(bestRate); playTapSound(isMuted); }} style={{ backgroundColor: accentColor, color: isDarkMode ? '#000' : '#FFF', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
+                <button className="btn-tap" onClick={() => { setP2pRate(bestRate); playTapSound(isMuted); }} style={{ backgroundColor: accentColor, color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -386,7 +378,7 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <strong style={{ fontSize: '13px', color: accentColor }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
-                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: `${accentColor}30`, color: accentColor, border: `1px solid ${accentColor}`, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
+                <button className="btn-tap" onClick={() => { setP2pRate(p2pRate); playTapSound(isMuted); }} style={{ backgroundColor: `${accentColor}30`, color: accentColor, border: `1.5px solid ${accentColor}`, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>Usar</button>
               </div>
             </div>
           </div>
@@ -424,8 +416,8 @@ export default function App() {
 
           <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center', animation: 'pulseGlow 3s infinite ease-in-out' }}>
             <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
-            <div style={{ fontSize: '22px', fontWeight: '900', color: isDarkMode ? '#00FF9D' : '#059669', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>≈ <span style={{ color: isDarkMode ? '#00FF9D' : '#059669' }}>${gananciaUsd.toFixed(2)}</span> USD (<span style={{ color: isDarkMode ? '#00FF9D' : '#059669' }}>{gananciaPorcentaje.toFixed(2)}</span>%)</div>
+            <div style={{ fontSize: '22px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>≈ <span style={{ color: '#00FF9D' }}>${gananciaUsd.toFixed(2)}</span> USD (<span style={{ color: '#00FF9D' }}>{gananciaPorcentaje.toFixed(2)}</span>%)</div>
           </div>
         </div>
 
@@ -435,14 +427,14 @@ export default function App() {
               <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA</span>
               <span style={{ fontSize: '9px', color: ui.textMuted, fontWeight: 'bold' }}>Reinversión total del capital ganado en cada vuelta</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '8px', padding: '4px 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1.5px solid ${ui.border}`, borderRadius: '8px', padding: '4px 8px' }}>
               <span style={{ fontSize: '10px', fontWeight: '900', color: ui.textMuted }}>VUELTAS:</span>
               <input type="number" min="1" max="50" value={cycles} onFocus={(e) => { e.target.select(); playTapSound(isMuted); }} onChange={(e) => setCycles(e.target.value)} style={{ width: '40px', backgroundColor: 'transparent', border: 'none', color: accentColor, fontSize: '14px', fontWeight: '900', textAlign: 'center', outline: 'none' }} />
             </div>
           </div>
           <div style={{ backgroundColor: ui.inputBg, border: `1.5px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
             <span style={{ fontSize: '10px', color: ui.textMuted, fontWeight: '900', letterSpacing: '0.5px' }}>{labelUnidad}</span>
-            <div style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#00FF9D' : '#059669', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{formatTotal}</div>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: '#00FF9D', margin: '4px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{formatTotal}</div>
             <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary}>{subtextGanancia}</div>
           </div>
         </div>
