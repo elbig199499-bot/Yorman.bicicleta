@@ -8,15 +8,15 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴', darkBg: '#16090C', darkCard: '#241015', darkBorder: '#5E2230', darkInput: '#190A0D', lightBg: '#FCF2F4', lightCard: '#FFFFFF', lightBorder: '#FAC6D1', lightInput: '#FAEAEE' },
 ];
 
-const bankData: Record<string, { label: string; logoBg: string; textColor: string; comms: { label: string; val: string }[] }> = {
-  BDV: { label: 'BDV', logoBg: '#002D62', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
-  BBVA: { label: 'BBVA', logoBg: '#004481', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
-  Mercantil: { label: 'Mercantil', logo: 'Image', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Banesco: { label: 'Banesco', logo: 'Image', textColor: '#00A859', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  BNC: { label: 'BNC', logo: 'Image', textColor: '#00539F', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Bancamiga: { label: 'Bancamiga', logo: 'Image', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
-  Tesoro: { label: 'Tesoro', logo: 'Image', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
-  BDT: { label: 'BDT', logo: 'Image', textColor: '#E31B23', comms: [{ label: 'Compra', val: '0%' }] }
+const bankData: Record<string, { label: string; textColor: string; comms: { label: string; val: string }[] }> = {
+  BDV: { label: 'BDV', textColor: '#FFFFFF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }, { label: 'Débito', val: '2.5%' }] },
+  BBVA: { label: 'BBVA', textColor: '#00D0FF', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.0%' }] },
+  Mercantil: { label: 'Mercantil', textColor: '#FF6600', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Banesco: { label: 'Banesco', textColor: '#00A859', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  BNC: { label: 'BNC', textColor: '#00539F', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Bancamiga: { label: 'Bancamiga', textColor: '#00A3E0', comms: [{ label: 'Compra', val: '0%' }, { label: 'Virtual', val: '2.5%' }] },
+  Tesoro: { label: 'Tesoro', textColor: '#FFCC00', comms: [{ label: 'Compra', val: '0%' }] },
+  BDT: { label: 'BDT', textColor: '#E31B23', comms: [{ label: 'Compra', val: '0%' }] }
 };
 
 let globalAudioCtx: AudioContext | null = null;
@@ -300,7 +300,7 @@ export default function App() {
               return (
                 <button key={bKey} className="btn-tap" onClick={() => { setBank(bKey); playTapSound(isMuted); }} style={{ minWidth: '76px', padding: '8px 4px', borderRadius: '12px', border: isSelected ? `2px solid ${accentColor}` : `1.5px solid ${ui.border}`, backgroundColor: isSelected ? `${accentColor}30` : ui.inputBg, color: ui.textPrimary, fontSize: '10px', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
                   <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.3)', border: '1px solid #E2E8F0', padding: '2px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '900', color: bInfo.textColor === '#FFFFFF' ? '#002D62' : bInfo.textColor, textAlign: 'center', lineHeight: '1' }}>{bKey}</span>
+                    <span style={{ fontSize: '10px', fontWeight: '900', color: bInfo.textColor, textAlign: 'center', lineHeight: '1' }}>{bKey}</span>
                   </div>
                   <span style={{ whiteSpace: 'nowrap', fontWeight: '900', fontSize: '10px' }}>{bInfo.label}</span>
                 </button>
@@ -430,7 +430,7 @@ export default function App() {
         </div>
 
         <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'>>() => {}
             <div>
               <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA</span>
               <span style={{ fontSize: '9px', color: ui.textMuted, fontWeight: 'bold' }}>Reinversión total del capital ganado en cada vuelta</span>
