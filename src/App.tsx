@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const colorPalette = [
   { id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡', darkBg: '#12100B', darkCard: '#1C1911', darkBorder: '#3A3320', darkInput: '#13110C', lightBg: '#FEFDF5', lightCard: '#FFFFFF', lightBorder: '#F3E8C8', lightInput: '#FAF7EC' },
