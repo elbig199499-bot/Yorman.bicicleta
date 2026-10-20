@@ -62,20 +62,18 @@ export default function App() {
     return saved ? Number(saved) : 100;
   });
 
-  // Estado de Selección de Banco, Moneda y Repeticiones (Ciclos)
+  // Estado de Selección de Banco y Moneda
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USD');
-  const [cycles, setCycles] = useState<string>('1');
   
-  // Inputs como texto para selección y borrado fluido
+  // Inputs principales
   const [amount, setAmount] = useState<string>('200');
-  
-  // Tasa de Intervención Cambiaria BCV
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
-  
-  // Tasa P2P
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
   const [bestRate, setBestRate] = useState<string>('1005.36');
+  
+  // Estado para la sección final de CICLOS
+  const [cycles, setCycles] = useState<string>('3');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastSync, setLastSync] = useState<string>('En vivo');
@@ -146,7 +144,6 @@ export default function App() {
 
   // Conversiones y Cálculos Exactos
   const valAmount = parseFloat(amount) || 0;
-  const valCycles = Math.max(1, parseInt(cycles) || 1);
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
@@ -181,15 +178,47 @@ export default function App() {
   const comisionBancoBs = bsBaseIntervencion * (cAdjudicacionPct / 100);
   const totalBsNecesariosEnBanco = bsBaseIntervencion + comisionBancoBs;
 
-  // Venta en Binance P2P y Margen Neto por Ciclo
+  // Venta en Binance P2P y Margen Neto de 1 Ciclo
   const bsVentaP2P = usdtP2p * baseP2p;
   const gananciaBs = bsVentaP2P - totalBsNecesariosEnBanco;
   const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
   const gananciaPorcentaje = totalBsNecesariosEnBanco > 0 ? (gananciaBs / totalBsNecesariosEnBanco) * 100 : 0;
 
-  // Multiplicación por Número de Ciclos
-  const gananciaTotalBs = gananciaBs * valCycles;
-  const gananciaTotalUsd = gananciaUsd * valCycles;
+  // Cálculo Dinámico para la sección de Múltiples Ciclos
+  const valCycles = Math.max(1, parseInt(cycles) || 1);
+
+  let finalTotalNeto = 0;
+  let finalGananciaNeto = 0;
+  let labelUnidad = '';
+  let formatTotal = '';
+  let subtextGanancia = '';
+
+  if (currencyMode === 'USDT') {
+    const ratioCycle = valAmount > 0 ? usdtP2p / valAmount : 1;
+    finalTotalNeto = valAmount * Math.pow(ratioCycle, valCycles);
+    finalGananciaNeto = finalTotalNeto - valAmount;
+    const gananciaBsEquiv = finalGananciaNeto * tasaRealCompra;
+    labelUnidad = `USDT FINALES OBTENIDOS EN BINANCE (${valCycles} ${valCycles === 1 ? 'CICLO' : 'CICLOS'})`;
+    formatTotal = `${finalTotalNeto.toFixed(2)} USDT`;
+    subtextGanancia = `+${finalGananciaNeto.toFixed(2)} USDT netos ganados (≈ +${gananciaBsEquiv.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs)`;
+  } else if (currencyMode === 'BS') {
+    const ratioCycle = valAmount > 0 ? bsVentaP2P / valAmount : 1;
+    finalTotalNeto = valAmount * Math.pow(ratioCycle, valCycles);
+    finalGananciaNeto = finalTotalNeto - valAmount;
+    const gananciaUsdEquiv = tasaRealCompra > 0 ? finalGananciaNeto / tasaRealCompra : 0;
+    labelUnidad = `BOLÍVARES FINALES EN CUENTA (${valCycles} ${valCycles === 1 ? 'CICLO' : 'CICLOS'})`;
+    formatTotal = `${finalTotalNeto.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`;
+    subtextGanancia = `+${finalGananciaNeto.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs netos ganados (≈ +$${gananciaUsdEquiv.toFixed(2)} USD)`;
+  } else {
+    const usdFinales1Cycle = tasaRealCompra > 0 ? bsVentaP2P / (tasaRealCompra * (1 + cAdjudicacionPct / 100)) : 0;
+    const ratioCycle = valAmount > 0 ? usdFinales1Cycle / valAmount : 1;
+    finalTotalNeto = valAmount * Math.pow(ratioCycle, valCycles);
+    finalGananciaNeto = finalTotalNeto - valAmount;
+    const gananciaBsEquiv = finalGananciaNeto * tasaRealCompra;
+    labelUnidad = `USD FINALES ACUMULADOS (${valCycles} ${valCycles === 1 ? 'CICLO' : 'CICLOS'})`;
+    formatTotal = `$${finalTotalNeto.toFixed(2)} USD`;
+    subtextGanancia = `+$${finalGananciaNeto.toFixed(2)} USD netos ganados (≈ +${gananciaBsEquiv.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs)`;
+  }
 
   return (
     <div style={{
@@ -227,7 +256,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Controles Compactos: Selector de Color, Modo Claro/Oscuro y Zoom */}
+          {/* Selector de Color, Modo Claro/Oscuro y Zoom */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <select
               value={activeColorIndex}
@@ -391,58 +420,33 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. DATOS DE OPERACIÓN (Incluye el nuevo campo de CICLOS) */}
+        {/* 3. DATOS DE OPERACIÓN */}
         <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {/* Selector de número de ciclos */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '6px', padding: '2px 4px' }}>
-                <span style={{ fontSize: '9px', color: accentColor, fontWeight: 'bold' }}>🔄 CICLOS:</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={cycles}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => setCycles(e.target.value)}
-                  style={{
-                    width: '32px',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: ui.textPrimary,
-                    fontSize: '11px',
-                    fontWeight: '800',
-                    textAlign: 'center',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              {/* Tasa Intervención */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '10px', color: ui.textMuted }}>BCV:</span>
-                <input
-                  type="number"
-                  step="any"
-                  value={intervencionRate}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => setIntervencionRate(e.target.value)}
-                  style={{
-                    width: '75px',
-                    backgroundColor: ui.inputBg,
-                    border: `1px solid ${ui.border}`,
-                    borderRadius: '6px',
-                    color: accentColor,
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    padding: '3px',
-                    outline: 'none'
-                  }}
-                />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>INTERVENCIÓN</span>
+              <input
+                type="number"
+                step="any"
+                value={intervencionRate}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setIntervencionRate(e.target.value)}
+                style={{
+                  width: '85px',
+                  backgroundColor: ui.inputBg,
+                  border: `1px solid ${ui.border}`,
+                  borderRadius: '6px',
+                  color: accentColor,
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  padding: '3px',
+                  outline: 'none'
+                }}
+              />
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>Bs</span>
             </div>
           </div>
 
@@ -523,4 +527,119 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: '800' }}>MERCADO GENERAL</div>
-                <div style={{ fontSize: '9
+                <div style={{ fontSize: '9px', color: ui.textMuted }}>{bank}, Bank Transfer</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button
+                  onClick={() => setP2pRate(p2pRate)}
+                  style={{ backgroundColor: '#0ECB8120', color: '#0ECB81', border: '1px solid #0ECB81', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. TARJETA DESGLOSE DE 1 CICLO */}
+        <div style={{ backgroundColor: ui.cardBg, border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>1. Tasa Intervención:</span>
+            <strong style={{ color: accentColor }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>2. Subtotal Divisas ($USD):</span>
+            <strong style={{ color: ui.textPrimary }}>{bsBaseIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: accentColor }}>3. Comisión Banco (0.5%):</span>
+            <strong style={{ color: accentColor }}>+ {comisionBancoBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px', borderTop: `1px dashed ${ui.border}`, paddingTop: '6px', backgroundColor: `${accentColor}10`, padding: '6px', borderRadius: '6px' }}>
+            <span style={{ color: accentColor, fontWeight: '800' }}>⚠️ SALDO NECESARIO EN BANCO:</span>
+            <strong style={{ color: accentColor, fontWeight: '900' }}>{totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>5. USD Comprados:</span>
+            <strong style={{ color: '#58A6FF' }}>${usdAdjudicados.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', backgroundColor: ui.inputBg, padding: '6px', borderRadius: '6px', border: `1px solid ${ui.border}` }}>
+            <span style={{ color: '#58A6FF', fontWeight: 'bold' }}>6. USD Libres a Enviar (BDV -2.5%):</span>
+            <strong style={{ color: '#58A6FF', fontWeight: '900' }}>${usdLibresEnviar.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
+            <span style={{ color: ui.textMuted }}>7. USDT Finales Binance (-4.1%):</span>
+            <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
+          </div>
+
+          {/* GANANCIA DE 1 CICLO */}
+          <div style={{ backgroundColor: '#0ECB811A', border: '1px solid #0ECB81', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: '#0ECB81', fontWeight: '800', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA (1 CICLO)</span>
+            <div style={{ fontSize: '22px', fontWeight: '900', color: '#0ECB81', margin: '4px 0' }}>
+              {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
+              ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
+            </div>
+          </div>
+        </div>
+
+        {/* 6. SECCIÓN DINÁMICA DE MÚLTIPLES CICLOS AL FINAL */}
+        <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${accentColor}`, borderRadius: '14px', padding: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>
+                🔄 PROYECCIÓN DE VARIOS CICLOS
+              </span>
+              <span style={{ fontSize: '9px', color: ui.textMuted }}>
+                Ingresa cuántas vueltas vas a realizar en el día
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '4px 8px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', color: ui.textMuted }}>VUELTAS:</span>
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={cycles}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setCycles(e.target.value)}
+                style={{
+                  width: '40px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: accentColor,
+                  fontSize: '14px',
+                  fontWeight: '900',
+                  textAlign: 'center',
+                  outline: 'none'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: `${accentColor}15`, border: `1px solid ${accentColor}`, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: accentColor, fontWeight: '800', letterSpacing: '0.5px' }}>
+              {labelUnidad}
+            </span>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: accentColor, margin: '4px 0' }}>
+              {formatTotal}
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
+              {subtextGanancia}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
