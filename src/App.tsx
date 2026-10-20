@@ -9,7 +9,7 @@ const colorPalette = [
   { id: 'coral', name: 'Coral', hex: '#E11D48', icon: '🔴' },
 ];
 
-// Estructura de Bancos con Insignias Vectoriales
+// Estructura de Bancos
 const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
   BDV: {
     color: '#E11D48',
@@ -62,9 +62,9 @@ export default function App() {
     return saved ? Number(saved) : 100;
   });
 
-  // Estado de Selección de Banco y Moneda
+  // Estado de Selección
   const [bank, setBank] = useState<string>('BDV');
-  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USD');
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
   
   // Inputs principales
   const [amount, setAmount] = useState<string>('200');
@@ -72,7 +72,7 @@ export default function App() {
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
   const [bestRate, setBestRate] = useState<string>('1005.36');
   
-  // Estado para la sección final de CICLOS
+  // Repetición de Ciclos
   const [cycles, setCycles] = useState<string>('3');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -155,36 +155,50 @@ export default function App() {
 
   let usdAdjudicados = 0;
   let bsBaseIntervencion = 0;
+  let totalBsNecesariosEnBanco = 0;
+  let comisionBancoBs = 0;
+  let usdLibresEnviar = 0;
+  let usdtP2p = 0;
 
-  if (currencyMode === 'USD') {
+  if (currencyMode === 'USDT') {
+    const usdtIniciales = valAmount;
+    const bsRecibidosP2P = usdtIniciales * baseP2p;
+    totalBsNecesariosEnBanco = bsRecibidosP2P;
+    
+    bsBaseIntervencion = totalBsNecesariosEnBanco / (1 + cAdjudicacionPct / 100);
+    comisionBancoBs = totalBsNecesariosEnBanco - bsBaseIntervencion;
+    
+    usdAdjudicados = bsBaseIntervencion / (tasaRealCompra || 1);
+    const comisionEnvioUsd = usdAdjudicados * (cEnvioPct / 100);
+    usdLibresEnviar = usdAdjudicados - comisionEnvioUsd;
+    usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);
+  } else if (currencyMode === 'USD') {
     usdAdjudicados = valAmount;
     bsBaseIntervencion = usdAdjudicados * tasaRealCompra;
-  } else if (currencyMode === 'USDT') {
-    const factorRetornoNeto = (1 - cEnvioPct / 100) * (1 - cBinancePct / 100);
-    usdAdjudicados = valAmount / (factorRetornoNeto || 1);
-    bsBaseIntervencion = usdAdjudicados * tasaRealCompra;
+    comisionBancoBs = bsBaseIntervencion * (cAdjudicacionPct / 100);
+    totalBsNecesariosEnBanco = bsBaseIntervencion + comisionBancoBs;
+    
+    const comisionEnvioUsd = usdAdjudicados * (cEnvioPct / 100);
+    usdLibresEnviar = usdAdjudicados - comisionEnvioUsd;
+    usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);
   } else {
-    const bsSinComision = valAmount / (1 + cAdjudicacionPct / 100);
-    bsBaseIntervencion = bsSinComision;
+    totalBsNecesariosEnBanco = valAmount;
+    bsBaseIntervencion = totalBsNecesariosEnBanco / (1 + cAdjudicacionPct / 100);
+    comisionBancoBs = totalBsNecesariosEnBanco - bsBaseIntervencion;
+    
     usdAdjudicados = bsBaseIntervencion / (tasaRealCompra || 1);
+    const comisionEnvioUsd = usdAdjudicados * (cEnvioPct / 100);
+    usdLibresEnviar = usdAdjudicados - comisionEnvioUsd;
+    usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);
   }
 
-  // Desglose de Dólares y Comisiones
-  const comisionEnvioUsd = usdAdjudicados * (cEnvioPct / 100);
-  const usdLibresEnviar = usdAdjudicados - comisionEnvioUsd; 
-  const usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);  
-
-  // Comisiones en Bolívares
-  const comisionBancoBs = bsBaseIntervencion * (cAdjudicacionPct / 100);
-  const totalBsNecesariosEnBanco = bsBaseIntervencion + comisionBancoBs;
-
-  // Venta en Binance P2P y Margen Neto de 1 Ciclo
+  // Margen Neto de 1 Ciclo
   const bsVentaP2P = usdtP2p * baseP2p;
   const gananciaBs = bsVentaP2P - totalBsNecesariosEnBanco;
   const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
   const gananciaPorcentaje = totalBsNecesariosEnBanco > 0 ? (gananciaBs / totalBsNecesariosEnBanco) * 100 : 0;
 
-  // Cálculo Dinámico para la sección de Múltiples Ciclos
+  // Interés Compuesto Real para Múltiples Ciclos (Reinversión Total)
   const valCycles = Math.max(1, parseInt(cycles) || 1);
 
   let finalTotalNeto = 0;
@@ -197,8 +211,8 @@ export default function App() {
     const ratioCycle = valAmount > 0 ? usdtP2p / valAmount : 1;
     finalTotalNeto = valAmount * Math.pow(ratioCycle, valCycles);
     finalGananciaNeto = finalTotalNeto - valAmount;
-    const gananciaBsEquiv = finalGananciaNeto * tasaRealCompra;
-    labelUnidad = `USDT FINALES OBTENIDOS EN BINANCE (${valCycles} ${valCycles === 1 ? 'CICLO' : 'CICLOS'})`;
+    const gananciaBsEquiv = finalGananciaNeto * baseP2p;
+    labelUnidad = `CANTIDAD TOTAL DE USDT OBTENIDOS FINALES (${valCycles} ${valCycles === 1 ? 'CICLO' : 'CICLOS'})`;
     formatTotal = `${finalTotalNeto.toFixed(2)} USDT`;
     subtextGanancia = `+${finalGananciaNeto.toFixed(2)} USDT netos ganados (≈ +${gananciaBsEquiv.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs)`;
   } else if (currencyMode === 'BS') {
@@ -304,7 +318,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 1. SECCIÓN DE BANCOS */}
+        {/* 1. BANCO */}
         <div style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>BANCO</span>
@@ -371,6 +385,22 @@ export default function App() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             <button
+              onClick={() => setCurrencyMode('USDT')}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
+                color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
+                textAlign: 'left',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT a vender</div>
+            </button>
+
+            <button
               onClick={() => setCurrencyMode('USD')}
               style={{
                 padding: '8px 4px',
@@ -384,22 +414,6 @@ export default function App() {
             >
               <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
               <div style={{ fontSize: '8px', opacity: 0.8 }}>USD a comprar</div>
-            </button>
-
-            <button
-              onClick={() => setCurrencyMode('USDT')}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : `1px solid ${ui.border}`,
-                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
-                color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
-              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT objetivo</div>
             </button>
 
             <button
@@ -591,15 +605,15 @@ export default function App() {
           </div>
         </div>
 
-        {/* 6. SECCIÓN DINÁMICA DE MÚLTIPLES CICLOS AL FINAL */}
+        {/* 6. PROYECCIÓN DE REINVERSIÓN COMPUESTA */}
         <div style={{ backgroundColor: ui.cardBg, border: `1.5px solid ${accentColor}`, borderRadius: '14px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
               <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>
-                🔄 PROYECCIÓN DE VARIOS CICLOS
+                🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA
               </span>
               <span style={{ fontSize: '9px', color: ui.textMuted }}>
-                Ingresa cuántas vueltas vas a realizar en el día
+                Reinversión total del capital ganado en cada vuelta
               </span>
             </div>
 
