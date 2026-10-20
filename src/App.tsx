@@ -76,21 +76,21 @@ const playChimeSound = (muted: boolean) => {
 export default function App() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
+  const [activeColorIndex, setActiveColorIndex] = useState<number>(2); // Cobalto por defecto como en tu captura
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
   const [bank, setBank] = useState<string>('BDV');
-  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
-  const [amount, setAmount] = useState<string>('200');
+  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('BS');
+  const [amount, setAmount] = useState<string>('200000');
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
   const [bestRate, setBestRate] = useState<string>('1005.36');
   const [cycles, setCycles] = useState<string>('3');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastSync, setLastSync] = useState<string>('En vivo');
+  const [lastSync, setLastSync] = useState<string>('14:14');
 
   const theme = colorPalette[activeColorIndex];
   const accentColor = theme.hex;
@@ -150,10 +150,6 @@ export default function App() {
     setIsLoading(false);
     playChimeSound(isMuted);
   }, [isMuted]);
-
-  useEffect(() => {
-    fetchLiveRates();
-  }, [bank, fetchLiveRates]);
 
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
