@@ -54,10 +54,10 @@ export default function App() {
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
   
-  // Inputs como texto para borrado fluido sin ceros atascados
+  // Valores en formato string para borrado e ingreso fluido en móviles
   const [amount, setAmount] = useState<string>('500');
   
-  // Tasa de Intervención Cambiaria (Base actualizada 886.29)
+  // Tasa de Intervención Cambiaria BCV protegida (886.29 Bs)
   const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
   
   // Tasa P2P
@@ -73,11 +73,11 @@ export default function App() {
     localStorage.setItem('bici_zoom', String(newZoom));
   };
 
-  // Sincronización Automática Doble: Binance P2P + Lector directo de Intervención BCV
+  // Sincronización automática exclusiva para Binance P2P
   const fetchLiveRates = useCallback(async () => {
     setIsLoading(true);
+    let p2pSuccess = false;
 
-    // 1. Obtener Binance P2P
     try {
       const resP2P = await fetch('https://ve.dolarapi.com/v1/dolares/binance');
       if (resP2P.ok) {
@@ -86,35 +86,28 @@ export default function App() {
           const mainP2p = Number(dataP2P.promedio);
           setP2pRate(mainP2p.toFixed(2));
           setBestRate((mainP2p - 1.64).toFixed(2));
+          p2pSuccess = true;
         }
       }
     } catch {
-      console.warn('Fallback a servidor P2P secundario...');
+      console.warn('Fallo servidor principal P2P');
     }
 
-    // 2. Extractor Automático desde la Web Oficial de Intervención del BCV
-    try {
-      const targetUrl = encodeURIComponent('https://www.bcv.org.ve/politica-cambiaria/intervencion-cambiaria');
-      const resBCV = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
-      if (resBCV.ok) {
-        const json = await resBCV.json();
-        if (json && json.contents) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(json.contents, 'text/html');
-          const rows = doc.querySelectorAll('table tbody tr');
-          if (rows.length > 0) {
-            const firstRowCells = rows[0].querySelectorAll('td');
-            firstRowCells.forEach((cell) => {
-              const text = cell.textContent?.trim().replace(',', '.');
-              if (text && !isNaN(Number(text)) && Number(text) > 800) {
-                setIntervencionRate(Number(text).toFixed(2));
-              }
-            });
+    if (!p2pSuccess) {
+      try {
+        const resPy = await fetch('https://pydolarve.org/api/v1/dollar?page=binance');
+        if (resPy.ok) {
+          const dataPy = await resPy.json();
+          if (dataPy?.monitors?.binance?.price) {
+            const mainP2p = Number(dataPy.monitors.binance.price);
+            setP2pRate(mainP2p.toFixed(2));
+            setBestRate((mainP2p - 1.64).toFixed(2));
+            p2pSuccess = true;
           }
         }
+      } catch (err) {
+        console.error('Error al sincronizar Binance P2P:', err);
       }
-    } catch {
-      console.warn('Lectura automática de BCV en proceso o bloqueada. Manteniendo última tasa registrada.');
     }
 
     const now = new Date();
@@ -189,7 +182,7 @@ export default function App() {
                 cursor: 'pointer'
               }}
             >
-              {isLoading ? '⏳ Actualizando...' : `🔄 Auto: ${lastSync}`}
+              {isLoading ? '⏳ Actualizando...' : `🔄 P2P Auto: ${lastSync}`}
             </button>
           </div>
 
@@ -408,3 +401,70 @@ export default function App() {
               <div>
                 <div style={{ fontSize: '8px', color: '#F0B90B', fontWeight: '800' }}>MEJOR TASA PARA TU MONTO</div>
                 <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer (Verificado)</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '13px', color: '#F0B90B' }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button
+                  onClick={() => setP2pRate(bestRate)}
+                  style={{ backgroundColor: '#F0B90B', color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: '800' }}>MERCADO GENERAL</div>
+                <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <button
+                  onClick={() => setP2pRate(p2pRate)}
+                  style={{ backgroundColor: '#0ECB8120', color: '#0ECB81', border: '1px solid #0ECB81', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. TARJETA DESGLOSE Y GANANCIA ESTIMADA */}
+        <div style={{ backgroundColor: '#161B22', border: '1.5px solid #0ECB81', borderRadius: '14px', padding: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: '#8B949E' }}>1. Tasa Intervención:</span>
+            <strong style={{ color: '#F0B90B' }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: '#8B949E' }}>2. Bs Totales Requeridos:</span>
+            <strong style={{ color: '#E6EDF3' }}>{bsIntervencion.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: '#8B949E' }}>3. USD Adjudicados:</span>
+            <strong style={{ color: '#58A6FF' }}>${usdComprados.toFixed(2)} USD</strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
+            <span style={{ color: '#8B949E' }}>4. USDT Finales Binance (-4.1%):</span>
+            <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
+          </div>
+
+          <div style={{ backgroundColor: '#0ECB811A', border: '1px solid #0ECB81', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: '#0ECB81', fontWeight: '800', letterSpacing: '0.5px' }}>GANANCIA ESTIMADA DE LA BICICLETA</span>
+            <div style={{ fontSize: '22px', fontWeight: '900', color: '#0ECB81', margin: '4px 0' }}>
+              {gananciaBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#E6EDF3' }}>
+              ≈ ${gananciaUsd.toFixed(2)} USD ({gananciaPorcentaje.toFixed(2)}%)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
