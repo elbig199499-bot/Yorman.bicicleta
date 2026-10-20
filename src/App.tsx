@@ -53,12 +53,12 @@ export default function App() {
   // Estado de Selección
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
-  const [amount, setAmount] = useState<number | string>(500);
-
-  // Tasas Iniciales (Tasa Intervención Oficial BCV actualizada por defecto)
-  const [bcvRate, setBcvRate] = useState<number>(885.47);
-  const [p2pRate, setP2pRate] = useState<number>(1007.00);
-  const [bestRate, setBestRate] = useState<number>(1005.36);
+  
+  // Guardados como string para permitir borrado total e ingreso sin ceros atascados
+  const [amount, setAmount] = useState<string>('500');
+  const [intervencionRate, setIntervencionRate] = useState<string>('885.47');
+  const [p2pRate, setP2pRate] = useState<string>('1007.00');
+  const [bestRate, setBestRate] = useState<string>('1005.36');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastSync, setLastSync] = useState<string>('En vivo');
@@ -69,34 +69,67 @@ export default function App() {
     localStorage.setItem('bici_zoom', String(newZoom));
   };
 
-  // Sistema de sincronización robusto de Múltiples Servidores (PyDolarVE + DolarApi)
+  // Sincronización en tiempo real de Tasa Intervención y Binance P2P
   const fetchLiveRates = useCallback(async () => {
     setIsLoading(true);
-    let bcvSuccess = false;
+    let intervencionSuccess = false;
     let p2pSuccess = false;
 
-    // 1. Obtención de Tasa BCV / Intervención
+    // 1. Obtener Tasa Binance P2P
     try {
-      const resPy = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
-      if (resPy.ok) {
-        const dataPy = await resPy.json();
-        if (dataPy?.monitors?.bcv?.price) {
-          setBcvRate(Number(dataPy.monitors.bcv.price));
-          bcvSuccess = true;
+      const resP2P = await fetch('https://ve.dolarapi.com/v1/dolares/binance');
+      if (resP2P.ok) {
+        const dataP2P = await resP2P.json();
+        if (dataP2P && dataP2P.promedio) {
+          const mainP2p = Number(dataP2P.promedio);
+          setP2pRate(mainP2p.toFixed(2));
+          setBestRate((mainP2p - 1.64).toFixed(2));
+          p2pSuccess = true;
         }
       }
     } catch {
-      console.warn('PyDolarVE BCV no disponible, pasando a DolarApi...');
+      console.warn('Servidor principal P2P no respondió...');
     }
 
-    if (!bcvSuccess) {
+    if (!p2pSuccess) {
+      try {
+        const resPy = await fetch('https://pydolarve.org/api/v1/dollar?page=binance');
+        if (resPy.ok) {
+          const dataPy = await resPy.json();
+          if (dataPy?.monitors?.binance?.price) {
+            const mainP2p = Number(dataPy.monitors.binance.price);
+            setP2pRate(mainP2p.toFixed(2));
+            setBestRate((mainP2p - 1.64).toFixed(2));
+            p2pSuccess = true;
+          }
+        }
+      } catch (err) {
+        console.error('Error al sincronizar Binance P2P:', err);
+      }
+    }
+
+    // 2. Obtener Tasa Oficial Intervención BCV
+    try {
+      const resPyBCV = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
+      if (resPyBCV.ok) {
+        const dataPyBCV = await resPyBCV.json();
+        if (dataPyBCV?.monitors?.bcv?.price) {
+          setIntervencionRate(Number(dataPyBCV.monitors.bcv.price).toFixed(4));
+          intervencionSuccess = true;
+        }
+      }
+    } catch {
+      console.warn('Buscando Tasa Intervención en API secundaria...');
+    }
+
+    if (!intervencionSuccess) {
       try {
         const resApi = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
         if (resApi.ok) {
           const dataApi = await resApi.json();
-          if (dataApi?.promedio) {
-            setBcvRate(Number(dataApi.promedio));
-            bcvSuccess = true;
+          if (dataApi && dataApi.promedio) {
+            setIntervencionRate(Number(dataApi.promedio).toFixed(4));
+            intervencionSuccess = true;
           }
         }
       } catch (err) {
@@ -104,40 +137,7 @@ export default function App() {
       }
     }
 
-    // 2. Obtención de Tasa Binance P2P
-    try {
-      const resP2P = await fetch('https://pydolarve.org/api/v1/dollar?page=binance');
-      if (resP2P.ok) {
-        const dataP2P = await resP2P.json();
-        if (dataP2P?.monitors?.binance?.price) {
-          const mainP2p = Number(dataP2P.monitors.binance.price);
-          setP2pRate(mainP2p);
-          setBestRate(Number((mainP2p - 1.64).toFixed(2)));
-          p2pSuccess = true;
-        }
-      }
-    } catch {
-      console.warn('PyDolarVE Binance no disponible, pasando a DolarApi...');
-    }
-
-    if (!p2pSuccess) {
-      try {
-        const resApiP2P = await fetch('https://ve.dolarapi.com/v1/dolares/binance');
-        if (resApiP2P.ok) {
-          const dataApiP2P = await resApiP2P.json();
-          if (dataApiP2P?.promedio) {
-            const mainP2p = Number(dataApiP2P.promedio);
-            setP2pRate(mainP2p);
-            setBestRate(Number((mainP2p - 1.64).toFixed(2)));
-            p2pSuccess = true;
-          }
-        }
-      } catch (err) {
-        console.error('Error al sincronizar P2P:', err);
-      }
-    }
-
-    if (bcvSuccess || p2pSuccess) {
+    if (intervencionSuccess || p2pSuccess) {
       const now = new Date();
       setLastSync(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     }
@@ -148,15 +148,15 @@ export default function App() {
     fetchLiveRates();
   }, [fetchLiveRates, bank]);
 
-  // Cálculo matemático sin recargos inventados
-  const valAmount = Number(amount) || 0;
-  const baseBcv = Number(bcvRate) || 1;
-  const baseP2p = Number(p2pRate) || 1;
+  // Conversiones y Cálculos sin recargos inventados
+  const valAmount = parseFloat(amount) || 0;
+  const baseIntervencion = parseFloat(intervencionRate) || 0;
+  const baseP2p = parseFloat(p2pRate) || 0;
 
   const cEnvio = 2.5;  // Envío/Transferencia
   const cBinance = 4.1; // Binance P2P
 
-  const tasaRealCompra = baseBcv; // Tasa limpia de intervención
+  const tasaRealCompra = baseIntervencion; // Tasa limpia ingresada o sincronizada
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
   let usdComprados = 0;
@@ -179,7 +179,7 @@ export default function App() {
 
   const bsVentaP2P = usdtP2p * baseP2p;
   const gananciaBs = bsVentaP2P - bsIntervencion;
-  const gananciaUsd = gananciaBs / (tasaRealCompra || 1);
+  const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
   const gananciaPorcentaje = bsIntervencion > 0 ? (gananciaBs / bsIntervencion) * 100 : 0;
 
   return (
@@ -211,7 +211,7 @@ export default function App() {
                 cursor: 'pointer'
               }}
             >
-              {isLoading ? '⏳ Actualizando...' : `🔄 ${lastSync}`}
+              {isLoading ? '⏳ Actualizando...' : `🔄 Auto: ${lastSync}`}
             </button>
           </div>
 
@@ -339,7 +339,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. DATOS DE OPERACIÓN */}
+        {/* 3. DATOS DE OPERACIÓN (Con Selección Automática al tocar para evitar ceros pegados) */}
         <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
@@ -347,10 +347,12 @@ export default function App() {
               <span style={{ fontSize: '10px', color: '#8B949E' }}>BCV</span>
               <input
                 type="number"
-                value={bcvRate}
-                onChange={(e) => setBcvRate(Number(e.target.value))}
+                step="any"
+                value={intervencionRate}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setIntervencionRate(e.target.value)}
                 style={{
-                  width: '80px',
+                  width: '85px',
                   backgroundColor: '#0D1117',
                   border: '1px solid #30363D',
                   borderRadius: '6px',
@@ -358,7 +360,8 @@ export default function App() {
                   fontSize: '11px',
                   fontWeight: 'bold',
                   textAlign: 'center',
-                  padding: '2px'
+                  padding: '3px',
+                  outline: 'none'
                 }}
               />
               <span style={{ fontSize: '10px', color: '#8B949E' }}>Bs</span>
@@ -370,7 +373,9 @@ export default function App() {
               <span style={{ fontSize: '11px' }}>{currencyMode === 'USD' ? '💵' : currencyMode === 'USDT' ? '₮' : '🇻🇪'}</span>
               <input
                 type="number"
+                step="any"
                 value={amount}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setAmount(e.target.value)}
                 style={{ width: '100%', background: 'none', border: 'none', color: '#E6EDF3', fontSize: '15px', fontWeight: '800', outline: 'none' }}
               />
@@ -392,7 +397,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 4. TASA P2P */}
+        {/* 4. TASA P2P (Con Selección Automática al tocar) */}
         <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>TASA P2P</span>
@@ -400,10 +405,12 @@ export default function App() {
               <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{bank}</span>
               <input
                 type="number"
+                step="any"
                 value={p2pRate}
-                onChange={(e) => setP2pRate(Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setP2pRate(e.target.value)}
                 style={{
-                  width: '75px',
+                  width: '80px',
                   backgroundColor: '#0D1117',
                   border: '1px solid #30363D',
                   borderRadius: '6px',
@@ -411,7 +418,8 @@ export default function App() {
                   fontSize: '12px',
                   fontWeight: 'bold',
                   textAlign: 'center',
-                  padding: '3px'
+                  padding: '3px',
+                  outline: 'none'
                 }}
               />
             </div>
@@ -424,7 +432,7 @@ export default function App() {
                 <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer (Verificado)</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: '#F0B90B' }}>{bestRate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <strong style={{ fontSize: '13px', color: '#F0B90B' }}>{parseFloat(bestRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
                 <button
                   onClick={() => setP2pRate(bestRate)}
                   style={{ backgroundColor: '#F0B90B', color: '#000', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
@@ -440,7 +448,7 @@ export default function App() {
                 <div style={{ fontSize: '9px', color: '#8B949E' }}>{bank}, Bank Transfer</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{p2pRate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
+                <strong style={{ fontSize: '13px', color: '#0ECB81' }}>{parseFloat(p2pRate || '0').toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs</strong>
                 <button
                   onClick={() => setP2pRate(p2pRate)}
                   style={{ backgroundColor: '#0ECB8120', color: '#0ECB81', border: '1px solid #0ECB81', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
