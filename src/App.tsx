@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Galería de Colores de Tema con Tonalidades Dinámicas de Fondo
+// Galería de Colores de Tema con Tonalidades Dinámicas
 const colorPalette = [
   {
     id: 'dorado', name: 'Dorado', hex: '#F0B90B', icon: '🟡',
@@ -30,7 +30,7 @@ const colorPalette = [
 ];
 
 // Estructura de Bancos
-const bankData: Record<string, { color: string; label: string; comms: { label: string; val: string }[] }> = {
+const bankData = {
   BDV: {
     color: '#E11D48',
     label: 'BDV',
@@ -73,12 +73,12 @@ const bankData: Record<string, { color: string; label: string; comms: { label: s
   }
 };
 
-// Motor Web Audio API nativo
-let globalAudioCtx: AudioContext | null = null;
+// Motor Web Audio API
+let globalAudioCtx = null;
 
 const getAudioContext = () => {
   if (!globalAudioCtx) {
-    const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
     if (AudioCtxClass) {
       globalAudioCtx = new AudioCtxClass();
     }
@@ -89,8 +89,8 @@ const getAudioContext = () => {
   return globalAudioCtx;
 };
 
-// Sonido de Tap/Click suave para botones y selecciones
-const playTapSound = (muted: boolean) => {
+// Sonido de Tap/Click
+const playTapSound = (muted) => {
   if (muted) return;
   try {
     const ctx = getAudioContext();
@@ -115,8 +115,8 @@ const playTapSound = (muted: boolean) => {
   }
 };
 
-// Sonido Chime de Confirmación para Actualizaciones de Cálculo
-const playChimeSound = (muted: boolean) => {
+// Sonido Chime de Actualización
+const playChimeSound = (muted) => {
   if (muted) return;
   try {
     const ctx = getAudioContext();
@@ -142,37 +142,30 @@ const playChimeSound = (muted: boolean) => {
 };
 
 export default function App() {
-  // Estado de Mute / Silenciador
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-
-  // Estado de Tema y Zoom
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [activeColorIndex, setActiveColorIndex] = useState<number>(0);
-  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+  const [isMuted, setIsMuted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [activeColorIndex, setActiveColorIndex] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(() => {
     const saved = localStorage.getItem('bici_zoom');
     return saved ? Number(saved) : 100;
   });
 
-  // Estado de Selección de Banco y Moneda
-  const [bank, setBank] = useState<string>('BDV');
-  const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
+  const [bank, setBank] = useState('BDV');
+  const [currencyMode, setCurrencyMode] = useState('USDT');
   
-  // Inputs principales
-  const [amount, setAmount] = useState<string>('200');
-  const [intervencionRate, setIntervencionRate] = useState<string>('886.29');
-  const [p2pRate, setP2pRate] = useState<string>('1007.00');
-  const [bestRate, setBestRate] = useState<string>('1005.36');
+  const [amount, setAmount] = useState('200');
+  const [intervencionRate, setIntervencionRate] = useState('886.29');
+  const [p2pRate, setP2pRate] = useState('1007.00');
+  const [bestRate, setBestRate] = useState('1005.36');
   
-  // Estado para la sección final de CICLOS
-  const [cycles, setCycles] = useState<string>('3');
+  const [cycles, setCycles] = useState('3');
   
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastSync, setLastSync] = useState<string>('En vivo');
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastSync, setLastSync] = useState('En vivo');
 
   const theme = colorPalette[activeColorIndex];
   const accentColor = theme.hex;
 
-  // Paleta Dinámica
   const ui = {
     bg: isDarkMode ? theme.darkBg : theme.lightBg,
     cardBg: isDarkMode ? theme.darkCard : theme.lightCard,
@@ -182,14 +175,13 @@ export default function App() {
     inputBg: isDarkMode ? theme.darkInput : theme.lightInput,
   };
 
-  const changeZoom = (delta: number) => {
+  const changeZoom = (delta) => {
     playTapSound(isMuted);
     const newZoom = Math.min(Math.max(zoomLevel + delta, 80), 130);
     setZoomLevel(newZoom);
     localStorage.setItem('bici_zoom', String(newZoom));
   };
 
-  // Sincronización automática de Binance P2P
   const fetchLiveRates = useCallback(async () => {
     setIsLoading(true);
     let p2pSuccess = false;
@@ -236,14 +228,13 @@ export default function App() {
     fetchLiveRates();
   }, [bank]);
 
-  // Conversiones y Cálculos Exactos
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
-  const cEnvioPct = 2.5;        // Comisión Envío BDV (2.5%)
-  const cBinancePct = 4.1;      // Comisión Binance P2P (4.1%)
-  const cAdjudicacionPct = 0.5; // Comisión Adjudicación Banco (0.5%)
+  const cEnvioPct = 2.5;
+  const cBinancePct = 4.1;
+  const cAdjudicacionPct = 0.5;
 
   const tasaRealCompra = baseIntervencion;
 
@@ -286,13 +277,11 @@ export default function App() {
     usdtP2p = usdLibresEnviar * (1 - cBinancePct / 100);
   }
 
-  // Margen Neto de 1 Ciclo
   const bsVentaP2P = usdtP2p * baseP2p;
   const gananciaBs = bsVentaP2P - totalBsNecesariosEnBanco;
   const gananciaUsd = tasaRealCompra > 0 ? gananciaBs / tasaRealCompra : 0;
   const gananciaPorcentaje = totalBsNecesariosEnBanco > 0 ? (gananciaBs / totalBsNecesariosEnBanco) * 100 : 0;
 
-  // Interés Compuesto Real para Múltiples Ciclos
   const valCycles = Math.max(1, parseInt(cycles) || 1);
 
   let finalTotalNeto = 0;
@@ -338,7 +327,6 @@ export default function App() {
       padding: '12px 8px 30px 8px',
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
-      {/* Estilos e Inyección de Animaciones CSS */}
       <style>{`
         @keyframes pulseGlow {
           0% { transform: scale(1); box-shadow: 0 0 0px rgba(14, 203, 129, 0); }
@@ -392,9 +380,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Selector de Color, Modo Claro/Oscuro, Silenciador y Zoom */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {/* BOTÓN DE CORNETICA / SILENCIADOR */}
             <button
               className="btn-tap"
               onClick={() => {
@@ -784,7 +770,7 @@ export default function App() {
             <strong style={{ color: '#0ECB81' }}>{usdtP2p.toFixed(2)} USDT</strong>
           </div>
 
-          {/* GANANCIA DE 1 CICLO CON PULSO Y EFECTO DE RESALTADO */}
+          {/* GANANCIA DE 1 CICLO */}
           <div style={{
             backgroundColor: '#0ECB811A',
             border: '1px solid #0ECB81',
@@ -851,7 +837,7 @@ export default function App() {
             <span style={{ fontSize: '10px', color: accentColor, fontWeight: '800', letterSpacing: '0.5px' }}>
               {labelUnidad}
             </span>
-            <div style={{ fontSize: '24px', fontWeight: '900', color accentColor, margin: '4px 0' }}>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: accentColor, margin: '4px 0' }}>
               {formatTotal}
             </div>
             <div style={{ fontSize: '11px', fontWeight: 'bold', color: ui.textPrimary }}>
