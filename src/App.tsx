@@ -28,8 +28,8 @@ export default function App() {
   const [inputCurrency, setInputCurrency] = useState<'BS' | 'USD' | 'USDT'>('USD');
   const [amount, setAmount] = useState<number | string>(200);
 
-  // Tasas automáticas y editables
-  const [bcvRate, setBcvRate] = useState<number | string>(881.8769);
+  // Tasa de Intervención Cambiaria oficial BCV
+  const [intervencionRate, setIntervencionRate] = useState<number | string>(885.47);
   const [p2pRate, setP2pRate] = useState<number | string>(1006.55);
 
   // Comisiones (%)
@@ -37,14 +37,24 @@ export default function App() {
   const [commEnvio, setCommEnvio] = useState<number | string>(2.5);
   const [commBinance, setCommBinance] = useState<number | string>(4.1);
 
-  // Carga automática de tasas oficiales
+  // Carga automática de la Tasa de Intervención y P2P
   useEffect(() => {
-    fetch('https://ve.dolarapi.com/v1/dolares/oficial')
+    fetch('https://ve.dolarapi.com/v1/dolares/intervencion')
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.promedio) setBcvRate(data.promedio);
+        if (data && data.promedio) setIntervencionRate(data.promedio);
       })
-      .catch((err) => console.error('Error BCV:', err));
+      .catch(() => {
+        // Fallback a oficial si no existe endpoint específico
+        fetch('https://ve.dolarapi.com/v1/dolares/oficial')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.promedio && Number(intervencionRate) === 881.8769) {
+              setIntervencionRate(data.promedio);
+            }
+          })
+          .catch((err) => console.error('Error BCV:', err));
+      });
 
     fetch('https://ve.dolarapi.com/v1/dolares/binance')
       .then((res) => res.json())
@@ -66,22 +76,22 @@ export default function App() {
   };
 
   const valAmount = Number(amount) || 0;
-  const baseBcv = Number(bcvRate) || 1;
+  const baseIntervencion = Number(intervencionRate) || 1;
   const baseP2p = Number(p2pRate) || 1;
 
   const cCompra = Number(commCompra) || 0;
   const cEnvio = Number(commEnvio) || 0;
   const cBinance = Number(commBinance) || 0;
 
-  // Tasa Real con Comisión de Compra del Banco
-  const tasaRealCompra = baseBcv * (1 + cCompra / 100);
+  // Tasa Real con Comisión de Compra de Intervención (+0.5%)
+  const tasaRealCompra = baseIntervencion * (1 + cCompra / 100);
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
   let usdComprados = 0;
   let bsTotalesDebitar = 0;
   let usdtBinance = 0;
 
-  // Lógica matemática automática según moneda seleccionada
+  // Lógica matemática automática según la moneda seleccionada
   if (inputCurrency === 'USD') {
     usdComprados = valAmount;
     bsTotalesDebitar = usdComprados * tasaRealCompra;
@@ -165,7 +175,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Selector de Moneda de Entrada */}
+        {/* Moneda de Entrada */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
             MONEDA DE ENTRADA
@@ -219,7 +229,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Input de Cantidad Dinámico */}
+        {/* Input de Cantidad */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
             {inputCurrency === 'USD' && 'CANTIDAD DE USD A COMPRAR'}
@@ -234,16 +244,16 @@ export default function App() {
           />
         </div>
 
-        {/* Tasas Editables y Automáticas */}
+        {/* Tasa Intervención Cambiaria y Venta P2P */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           <div>
             <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'block', marginBottom: '4px', textAlign: 'center', textTransform: 'uppercase' }}>
-              TASA INTERVENCIÓN (BASE)
+              TASA INTERVENCIÓN (BCV)
             </label>
             <input
               type="number"
-              value={bcvRate}
-              onChange={(e) => setBcvRate(e.target.value)}
+              value={intervencionRate}
+              onChange={(e) => setIntervencionRate(e.target.value)}
               style={{ width: '100%', padding: '10px', backgroundColor: ui.inputBg, color: activeTheme.accent, border: `1px solid ${ui.border}`, borderRadius: '10px', fontSize: '15px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }}
             />
           </div>
@@ -299,7 +309,7 @@ export default function App() {
         {/* Desglose Pasos 1 al 5 */}
         <div style={{ backgroundColor: ui.inputBg, padding: '16px', borderRadius: '16px', border: `1px solid ${ui.border}`, marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-            <span style={{ color: ui.subtext }}>1. Tasa Real con Comisión (+{cCompra}%):</span>
+            <span style={{ color: ui.subtext }}>1. Tasa Real Intervención (+{cCompra}%):</span>
             <strong style={{ color: activeTheme.accent }}>{tasaRealCompra.toFixed(4)} Bs/USD</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
@@ -320,7 +330,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Tarjeta de Ganancia Estimada en Tiempo Real */}
+        {/* Tarjeta de Ganancia Estimada */}
         <div style={{ backgroundColor: isDarkMode ? '#062d1b' : '#ecfdf5', border: '1.5px solid #10b981', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#10b981', display: 'block', letterSpacing: '0.5px', marginBottom: '4px', textTransform: 'uppercase' }}>
             GANANCIA ESTIMADA
