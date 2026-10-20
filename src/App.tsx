@@ -54,7 +54,7 @@ export default function App() {
   const [bank, setBank] = useState<string>('BDV');
   const [currencyMode, setCurrencyMode] = useState<'USDT' | 'USD' | 'BS'>('USDT');
   
-  // Guardados como string para permitir borrado total e ingreso sin ceros atascados
+  // Tasa de Intervención estricta en 885.47 (Protegida de sobreescrituras de la API oficial)
   const [amount, setAmount] = useState<string>('500');
   const [intervencionRate, setIntervencionRate] = useState<string>('885.47');
   const [p2pRate, setP2pRate] = useState<string>('1007.00');
@@ -69,13 +69,9 @@ export default function App() {
     localStorage.setItem('bici_zoom', String(newZoom));
   };
 
-  // Sincronización en tiempo real de Tasa Intervención y Binance P2P
+  // Sincronización exclusiva para Binance P2P sin tocar la Tasa de Intervención
   const fetchLiveRates = useCallback(async () => {
     setIsLoading(true);
-    let intervencionSuccess = false;
-    let p2pSuccess = false;
-
-    // 1. Obtener Tasa Binance P2P
     try {
       const resP2P = await fetch('https://ve.dolarapi.com/v1/dolares/binance');
       if (resP2P.ok) {
@@ -84,79 +80,30 @@ export default function App() {
           const mainP2p = Number(dataP2P.promedio);
           setP2pRate(mainP2p.toFixed(2));
           setBestRate((mainP2p - 1.64).toFixed(2));
-          p2pSuccess = true;
         }
       }
     } catch {
-      console.warn('Servidor principal P2P no respondió...');
-    }
-
-    if (!p2pSuccess) {
-      try {
-        const resPy = await fetch('https://pydolarve.org/api/v1/dollar?page=binance');
-        if (resPy.ok) {
-          const dataPy = await resPy.json();
-          if (dataPy?.monitors?.binance?.price) {
-            const mainP2p = Number(dataPy.monitors.binance.price);
-            setP2pRate(mainP2p.toFixed(2));
-            setBestRate((mainP2p - 1.64).toFixed(2));
-            p2pSuccess = true;
-          }
-        }
-      } catch (err) {
-        console.error('Error al sincronizar Binance P2P:', err);
-      }
-    }
-
-    // 2. Obtener Tasa Oficial Intervención BCV
-    try {
-      const resPyBCV = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
-      if (resPyBCV.ok) {
-        const dataPyBCV = await resPyBCV.json();
-        if (dataPyBCV?.monitors?.bcv?.price) {
-          setIntervencionRate(Number(dataPyBCV.monitors.bcv.price).toFixed(4));
-          intervencionSuccess = true;
-        }
-      }
-    } catch {
-      console.warn('Buscando Tasa Intervención en API secundaria...');
-    }
-
-    if (!intervencionSuccess) {
-      try {
-        const resApi = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
-        if (resApi.ok) {
-          const dataApi = await resApi.json();
-          if (dataApi && dataApi.promedio) {
-            setIntervencionRate(Number(dataApi.promedio).toFixed(4));
-            intervencionSuccess = true;
-          }
-        }
-      } catch (err) {
-        console.error('Error al sincronizar BCV:', err);
-      }
-    }
-
-    if (intervencionSuccess || p2pSuccess) {
+      console.warn('Usando tasa P2P local.');
+    } finally {
       const now = new Date();
       setLastSync(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchLiveRates();
   }, [fetchLiveRates, bank]);
 
-  // Conversiones y Cálculos sin recargos inventados
+  // Conversiones y Cálculos exactos
   const valAmount = parseFloat(amount) || 0;
   const baseIntervencion = parseFloat(intervencionRate) || 0;
   const baseP2p = parseFloat(p2pRate) || 0;
 
-  const cEnvio = 2.5;  // Envío/Transferencia
+  const cEnvio = 2.5;  // Envío / Transferencia
   const cBinance = 4.1; // Binance P2P
 
-  const tasaRealCompra = baseIntervencion; // Tasa limpia ingresada o sincronizada
+  const tasaRealCompra = baseIntervencion; // Tasa limpia ingresada
   const factorRetornoNeto = (1 - cEnvio / 100) * (1 - cBinance / 100);
 
   let usdComprados = 0;
@@ -339,12 +286,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. DATOS DE OPERACIÓN (Con Selección Automática al tocar para evitar ceros pegados) */}
+        {/* 3. DATOS DE OPERACIÓN (Con Selección Automática al tocar) */}
         <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '10px', color: '#8B949E' }}>BCV</span>
+              <span style={{ fontSize: '10px', color: '#8B949E' }}>INTERVENCIÓN</span>
               <input
                 type="number"
                 step="any"
@@ -397,7 +344,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 4. TASA P2P (Con Selección Automática al tocar) */}
+        {/* 4. TASA P2P */}
         <div style={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: '800' }}>TASA P2P</span>
