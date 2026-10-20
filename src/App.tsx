@@ -73,6 +73,32 @@ const bankData: Record<string, { color: string; label: string; comms: { label: s
   }
 };
 
+// Generador de Sonido de Confirmación (Web Audio API)
+const playChime = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // Tono D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // Tono A5
+
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.22);
+  } catch (e) {
+    console.warn('Audio no disponible en este navegador:', e);
+  }
+};
+
 export default function App() {
   // Estado de Tema y Zoom
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
@@ -157,6 +183,7 @@ export default function App() {
     const now = new Date();
     setLastSync(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     setIsLoading(false);
+    playChime();
   }, []);
 
   useEffect(() => {
@@ -318,7 +345,10 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <select
               value={activeColorIndex}
-              onChange={(e) => setActiveColorIndex(Number(e.target.value))}
+              onChange={(e) => {
+                setActiveColorIndex(Number(e.target.value));
+                playChime();
+              }}
               style={{
                 backgroundColor: ui.cardBg,
                 color: accentColor,
@@ -339,7 +369,10 @@ export default function App() {
             </select>
 
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={() => {
+                setIsDarkMode(!isDarkMode);
+                playChime();
+              }}
               style={{
                 backgroundColor: ui.cardBg,
                 border: `1px solid ${ui.border}`,
@@ -355,9 +388,9 @@ export default function App() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '2px' }}>
-              <button onClick={() => changeZoom(-5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
+              <button onClick={() => { changeZoom(-5); playChime(); }} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A−</button>
               <span style={{ fontSize: '10px', color: ui.textMuted, padding: '0 1px' }}>{zoomLevel}%</span>
-              <button onClick={() => changeZoom(5)} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
+              <button onClick={() => { changeZoom(5); playChime(); }} style={{ background: 'none', border: 'none', color: ui.textPrimary, padding: '2px 5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>A+</button>
             </div>
           </div>
         </div>
@@ -373,7 +406,10 @@ export default function App() {
             {Object.keys(bankData).map((bKey) => (
               <button
                 key={bKey}
-                onClick={() => setBank(bKey)}
+                onClick={() => {
+                  setBank(bKey);
+                  playChime();
+                }}
                 style={{
                   minWidth: '60px',
                   padding: '8px 4px',
@@ -407,4 +443,140 @@ export default function App() {
               {bank}
             </span>
             {bankData[bank]?.comms.map((c, idx) => (
-              <span key={idx
+              <span key={idx} style={{
+                backgroundColor: idx === 0 ? `${accentColor}1A` : ui.inputBg,
+                border: idx === 0 ? `1px solid ${accentColor}` : `1px solid ${ui.border}`,
+                color: idx === 0 ? accentColor : ui.textMuted,
+                padding: '3px 6px',
+                borderRadius: '6px',
+                fontSize: '10px',
+                fontWeight: '700'
+              }}>
+                {c.label} {c.val}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. MONEDA DE ENTRADA */}
+        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+          <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800', display: 'block', marginBottom: '8px' }}>
+            MONEDA DE ENTRADA
+          </span>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+            <button
+              onClick={() => { setCurrencyMode('USDT'); playChime(); }}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: currencyMode === 'USDT' ? '1.5px solid #0ECB81' : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'USDT' ? '#0ECB8110' : ui.inputBg,
+                color: currencyMode === 'USDT' ? '#0ECB81' : ui.textMuted,
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>₮ USDT</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>USDT a vender</div>
+            </button>
+
+            <button
+              onClick={() => { setCurrencyMode('USD'); playChime(); }}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: currencyMode === 'USD' ? '1.5px solid #58A6FF' : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'USD' ? '#1D63ED1A' : ui.inputBg,
+                color: currencyMode === 'USD' ? '#58A6FF' : ui.textMuted,
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>💵 USD</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>USD a comprar</div>
+            </button>
+
+            <button
+              onClick={() => { setCurrencyMode('BS'); playChime(); }}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: currencyMode === 'BS' ? `1.5px solid ${accentColor}` : `1px solid ${ui.border}`,
+                backgroundColor: currencyMode === 'BS' ? `${accentColor}1A` : ui.inputBg,
+                color: currencyMode === 'BS' ? accentColor : ui.textMuted,
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 'bold' }}>🇻🇪 Bs</div>
+              <div style={{ fontSize: '8px', opacity: 0.8 }}>Bs en cuenta</div>
+            </button>
+          </div>
+        </div>
+
+        {/* 3. DATOS DE OPERACIÓN */}
+        <div className="animate-update" style={{ backgroundColor: ui.cardBg, border: `1px solid ${ui.border}`, borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: '800' }}>DATOS DE OPERACIÓN</span>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>INTERVENCIÓN</span>
+              <input
+                type="number"
+                step="any"
+                value={intervencionRate}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setIntervencionRate(e.target.value)}
+                style={{
+                  width: '85px',
+                  backgroundColor: ui.inputBg,
+                  border: `1px solid ${ui.border}`,
+                  borderRadius: '6px',
+                  color: accentColor,
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  padding: '3px',
+                  outline: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              />
+              <span style={{ fontSize: '10px', color: ui.textMuted }}>Bs</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1fr', gap: '6px', alignItems: 'center' }}>
+            <div style={{ backgroundColor: ui.inputBg, border: `1px solid ${ui.border}`, borderRadius: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '11px' }}>{currencyMode === 'USD' ? '💵' : currencyMode === 'USDT' ? '₮' : '🇻🇪'}</span>
+              <input
+                type="number"
+                step="any"
+                value={amount}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setAmount(e.target.value)}
+                style={{ width: '100%', background: 'none', border: 'none', color: ui.textPrimary, fontSize: '15px', fontWeight: '800', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ backgroundColor: `${accentColor}10`, border: `1px solid ${accentColor}40`, borderRadius: '8px', padding: '6px 8px', transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '8px', color: accentColor, fontWeight: 'bold' }}>BS MÍNIMOS EN BANCO</div>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: accentColor, transition: 'all 0.3s ease' }}>
+                {totalBsNecesariosEnBanco.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: '#0A1E17', border: '1px solid #0ECB8140', borderRadius: '8px', padding: '6px 8px', transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '8px', color: '#0ECB81', fontWeight: 'bold' }}>USDT (P2P)</div>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: '#0ECB81', transition: 'all 0.3s ease' }}>
+                {usdtP2p.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. TASA P2P */}
+        <div className="animate-update" style={{ backgroundColor: ui
