@@ -7,8 +7,9 @@ export default function App() {
   const [bcv, setBcv] = useState<number | string>(885.47);
   const [p2p, setP2p] = useState<number | string>(1006.55);
 
+  // 🔄 Carga automática de tasas desde internet al abrir la app
   useEffect(() => {
-    // 1. Cargar tasa BCV / Intervención 🏦
+    // 1. Obtener tasa oficial del BCV 🏦
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
       .then((res) => res.json())
       .then((data) => {
@@ -18,7 +19,7 @@ export default function App() {
       })
       .catch((err) => console.error('Error cargando BCV:', err));
 
-    // 2. Cargar tasa Binance P2P 🟡
+    // 2. Obtener tasa Binance P2P 🟡
     fetch('https://ve.dolarapi.com/v1/dolares/binance')
       .then((res) => res.json())
       .then((data) => {
@@ -162,7 +163,7 @@ export default function App() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', marginBottom: '0.25rem' }}>
-              BCV (REAL: {(num(bcv) * (1 + num(buyFee) / 100)).toFixed(2)})
+              INTERVENCIÓN / BCV (REAL: {(num(bcv) * (1 + num(buyFee) / 100)).toFixed(2)})
             </label>
             <input
               type="number"
