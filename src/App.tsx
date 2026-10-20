@@ -430,7 +430,7 @@ export default function App() {
         </div>
 
         <div style={{ backgroundColor: ui.cardBg, border: `2px solid ${accentColor}`, borderRadius: '14px', padding: '14px', boxShadow: `0 6px 20px ${accentColor}25` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'>>() => {}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
               <span style={{ fontSize: '12px', fontWeight: '900', color: accentColor, display: 'block' }}>🔄 PROYECCIÓN DE REINVERSIÓN COMPUESTA</span>
               <span style={{ fontSize: '9px', color: ui.textMuted, fontWeight: 'bold' }}>Reinversión total del capital ganado en cada vuelta</span>
