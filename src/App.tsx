@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Galería de 15 temas con gradientes y acentos
+// Galería de 15 temas con gradientes
 const themePalette = [
   { id: 'cobalto', name: 'Azul Cobalto', accent: '#0052D4', gradient: 'linear-gradient(135deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%)', icon: '🔷' },
   { id: 'esmeralda', name: 'Verde Esmeralda', accent: '#059669', gradient: 'linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%)', icon: '🟩' },
@@ -19,19 +19,22 @@ const themePalette = [
   { id: 'melocoton', name: 'Naranja Fuego', accent: '#DC2626', gradient: 'linear-gradient(135deg, #B91C1C 0%, #EF4444 50%, #FCA5A5 100%)', icon: '🍑' },
 ];
 
-const bankLogos: Record<string, string> = {
-  BDV: '🔴 BDV',
-  Banesco: '🟢 Banesco',
-  Mercantil: '🔵 Mercantil',
-  BBVA: '🔷 BBVA',
-  BNC: '🟢 BNC',
+// Logos Oficiales de Bancos y Plataformas (URLs directas)
+const officialLogos: Record<string, string> = {
+  BDV: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Banco_de_Venezuela_logo.svg',
+  Banesco: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Banesco_logo.svg',
+  Mercantil: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Mercantil_Banco_logo.svg',
+  BBVA: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/BBVA_2019.svg',
+  BNC: 'https://www.bncenlinea.com/images/logo.png',
+  Binance: 'https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.svg',
+  BCV: 'https://upload.wikimedia.org/wikipedia/commons/5/5b/Banco_Central_de_Venezuela_logo.svg',
+  Bolivar: 'https://upload.wikimedia.org/wikipedia/commons/0/06/Flag_of_Venezuela.svg'
 };
 
 export default function App() {
   const [selectedThemeIndex, setSelectedThemeIndex] = useState<number>(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
-  const [mode, setMode] = useState<string>('USD');
   const [bank, setBank] = useState<string>('BNC');
   const [amount, setAmount] = useState<number | string>(500);
   const [bcv, setBcv] = useState<number | string>(881.8769);
@@ -68,9 +71,8 @@ export default function App() {
   const numBcv = Number(bcv) || 1;
   const numP2p = Number(p2p) || 1;
 
-  const totalBs = mode === 'Bs' ? numAmount : mode === 'USD' ? numAmount * numBcv : numAmount * numP2p;
-  const totalUSD = mode === 'USD' ? numAmount : totalBs / numBcv;
-  const totalUSDT = mode === 'USDT' ? numAmount : totalBs / numP2p;
+  const totalBs = numAmount * numBcv;
+  const totalUSDT = totalBs / numP2p;
 
   return (
     <div style={{ backgroundColor: ui.bg, color: ui.text, minHeight: '100vh', padding: '16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -127,10 +129,10 @@ export default function App() {
           </select>
         </div>
 
-        {/* Selector de Banco con Logos (Incluye BNC) */}
+        {/* Selector de Bancos con Logos Oficiales */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            🏛️ Selecciona tu banco
+            Selecciona tu banco
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {['BDV', 'Banesco', 'Mercantil', 'BBVA', 'BNC'].map((b) => (
@@ -138,7 +140,7 @@ export default function App() {
                 key={b}
                 onClick={() => setBank(b)}
                 style={{
-                  padding: '10px 8px',
+                  padding: '10px 6px',
                   borderRadius: '12px',
                   border: bank === b ? 'none' : `1px solid ${ui.border}`,
                   background: bank === b ? activeTheme.gradient : ui.inputBg,
@@ -154,17 +156,18 @@ export default function App() {
                   transition: 'all 0.2s'
                 }}
               >
-                <span>{bankLogos[b]}</span>
+                <img src={officialLogos[b]} alt={b} style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+                <span>{b}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Inputs de Tasas */}
+        {/* Inputs de Tasas con Logos Oficiales */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
           <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              🏛️ Tasa Intervención
+            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <img src={officialLogos.BCV} alt="BCV" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Intervención
             </label>
             <input
               type="number"
@@ -174,8 +177,8 @@ export default function App() {
             />
           </div>
           <div>
-            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              🟡 Binance P2P ({bank})
+            <label style={{ fontSize: '10px', fontWeight: '800', color: ui.subtext, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <img src={officialLogos.Binance} alt="Binance" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Binance P2P ({bank})
             </label>
             <input
               type="number"
@@ -186,52 +189,49 @@ export default function App() {
           </div>
         </div>
 
-        {/* Input de Monto */}
+        {/* Input de Monto Único */}
         <div style={{ marginBottom: '22px' }}>
           <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.6px', color: ui.subtext, display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-            💵 Monto a calcular
+            💵 Dólares a comprar (USD)
           </label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              style={{ flex: 1, padding: '11px 12px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '12px', fontSize: '14px', fontWeight: '600', boxSizing: 'border-box', outline: 'none' }}
-            />
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value)}
-              style={{ padding: '11px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', outline: 'none' }}
-            >
-              <option value="USD">💵 USD Intervención</option>
-              <option value="Bs">🇻🇪 Bolívares (Bs)</option>
-              <option value="USDT">🟡 USDT Binance</option>
-            </select>
-          </div>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            style={{ width: '100%', padding: '12px', backgroundColor: ui.inputBg, color: ui.text, border: `1px solid ${ui.border}`, borderRadius: '12px', fontSize: '15px', fontWeight: '700', boxSizing: 'border-box', outline: 'none' }}
+          />
         </div>
 
-        {/* Resultados */}
+        {/* Resultados Directos con Logos Oficiales */}
         <div style={{ background: ui.inputBg, padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${activeTheme.accent}`, borderTop: `1px solid ${ui.border}`, borderRight: `1px solid ${ui.border}`, borderBottom: `1px solid ${ui.border}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              🇻🇪 Bolívares (Bs):
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <img src={officialLogos.Bolivar} alt="Venezuela" style={{ width: '18px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} /> Bolívares Soberanos:
             </span>
             <strong style={{ fontSize: '18px', fontWeight: '800', background: activeTheme.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
             </strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              🏛️ Dólares BCV ($):
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <img src={officialLogos.BCV} alt="BCV" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> Intervención Bancaria:
             </span>
-            <strong style={{ fontSize: '14px', fontWeight: '700' }}>${totalUSD.toFixed(2)}</strong>
+            <strong style={{ fontSize: '15px', fontWeight: '700' }}>
+              ${numAmount.toFixed(2)} USD
+            </strong>
           </div>
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              🟡 Binance USDT:
+            <span style={{ fontSize: '13px', color: ui.subtext, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <img src={officialLogos.Binance} alt="Binance" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> Binance P2P ({bank}):
             </span>
-            <strong style={{ fontSize: '14px', fontWeight: '700' }}>{totalUSDT.toFixed(2)} USDT</strong>
+            <strong style={{ fontSize: '15px', fontWeight: '700' }}>
+              {totalUSDT.toFixed(2)} USDT
+            </strong>
           </div>
+
         </div>
 
       </div>
